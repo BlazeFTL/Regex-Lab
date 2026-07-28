@@ -1,0 +1,6 @@
+{
+  "name": "Regex Lab",
+  "description": "Tailwind Light Material Modern Regular Expression Tester, Interactive Tutorials, and Comprehensive Cheat Sheet",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
