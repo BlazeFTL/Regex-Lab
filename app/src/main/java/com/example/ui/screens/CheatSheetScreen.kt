@@ -99,45 +99,6 @@ fun CheatSheetScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(12.dp)) }
-
-            // Header Banner Illustration Card
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Slate900)
-                ) {
-                    Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_hero_banner_1785268747073),
-                            contentDescription = "Cheat Sheet Banner",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            alpha = 0.5f
-                        )
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Regex Knowledge Cheat Sheet",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Comprehensive regular expression token reference guide",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                }
-            }
-
             // SEARCH BAR
             item {
                 OutlinedTextField(
@@ -172,46 +133,6 @@ fun CheatSheetScreen(
                         unfocusedContainerColor = Color.White
                     )
                 )
-            }
-
-            // CATEGORY FILTER CHIPS
-            item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    item {
-                        FilterChip(
-                            selected = selectedCategory == null,
-                            onClick = { selectedCategory = null },
-                            label = { Text("All Topics (${CheatSheetData.items.size})") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Teal600,
-                                selectedLabelColor = Color.White,
-                                containerColor = Color.White,
-                                labelColor = Slate800
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    }
-
-                    items(CheatCategory.entries.toTypedArray()) { category ->
-                        val isSelected = selectedCategory == category
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                selectedCategory = if (isSelected) null else category
-                            },
-                            label = { Text(category.title) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Teal600,
-                                selectedLabelColor = Color.White,
-                                containerColor = Color.White,
-                                labelColor = Slate800
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    }
-                }
             }
 
             // LIST OF CHEAT SHEET ITEMS

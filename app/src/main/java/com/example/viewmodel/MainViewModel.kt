@@ -23,7 +23,7 @@ import java.util.regex.PatternSyntaxException
 
 data class RegexEvaluationState(
     val pattern: String = "\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b",
-    val testString: String = "Hello user@example.com, please contact admin.support@tech-company.org or sales@shop.net!",
+    val testString: String = "",
     val replaceString: String = "[EMAIL: $0]",
     val flags: Set<RegexFlag> = setOf(RegexFlag.GLOBAL, RegexFlag.CASE_INSENSITIVE),
     val isReplaceMode: Boolean = false,

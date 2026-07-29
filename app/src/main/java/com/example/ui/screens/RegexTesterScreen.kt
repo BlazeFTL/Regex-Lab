@@ -154,8 +154,6 @@ fun RegexTesterScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(12.dp)) }
-
             // 1. TITLE & ACTION HEADER
             item {
                 Row(
@@ -275,7 +273,18 @@ fun RegexTesterScreen(
                                 fontSize = 14.sp,
                                 lineHeight = 20.sp
                             ),
-                            placeholder = { Text("Paste or type text to test regex against...") },
+                            placeholder = { Text("Paste Or Type Here") },
+                            trailingIcon = if (state.testString.isNotEmpty()) {
+                                {
+                                    IconButton(onClick = { viewModel.updateTestString("") }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear Text",
+                                            tint = Slate600
+                                        )
+                                    }
+                                }
+                            } else null,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Teal600,
@@ -284,65 +293,6 @@ fun RegexTesterScreen(
                                 unfocusedContainerColor = Slate50
                             )
                         )
-
-                        // Quick Match Chips below text input box
-                        if (state.matches.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = "Quick Match Chips:",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Slate600
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                state.matches.take(12).forEachIndexed { idx, match ->
-                                    val colorPair = MatchHighlights[idx % MatchHighlights.size]
-                                    val isSelected = selectedMatchItem?.matchIndex == match.matchIndex
-
-                                    Row(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .background(if (isSelected) colorPair.border else colorPair.bg)
-                                            .border(1.dp, colorPair.border, RoundedCornerShape(16.dp))
-                                            .clickable { selectedMatchItem = if (isSelected) null else match }
-                                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "#${match.matchIndex + 1}: ",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = colorPair.text,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = if (match.value.length > 18) match.value.take(15) + "..." else match.value,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontFamily = FontFamily.Monospace,
-                                            color = colorPair.text,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    }
-                                }
-                                if (state.matches.size > 12) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .background(Slate200)
-                                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                                    ) {
-                                        Text(
-                                            text = "+${state.matches.size - 12} more",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Slate800,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -604,131 +554,6 @@ fun RegexTesterScreen(
                                             fontFamily = FontFamily.Monospace,
                                             fontSize = 13.sp,
                                             color = Slate900
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 5. CAPTURED GROUPS BREAKDOWN
-            if (state.matches.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Match Details & Capture Groups (${state.matches.size})",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate900,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-
-                items(state.matches) { match ->
-                    val colorPair = MatchHighlights[match.matchIndex % MatchHighlights.size]
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(colorPair.bg)
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Text(
-                                            text = "Match #${match.matchIndex + 1}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = colorPair.text,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "Index ${match.range.first}..${match.range.last}",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Slate600
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        clipboardManager.setText(AnnotatedString(match.value))
-                                    },
-                                    modifier = Modifier.size(28.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ContentCopy,
-                                        contentDescription = "Copy Match",
-                                        tint = Slate600,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Slate100)
-                                    .padding(8.dp)
-                            ) {
-                                Text(
-                                    text = match.value,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Slate900
-                                )
-                            }
-
-                            if (match.groups.size > 1) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Captured Groups (${match.groups.size - 1}):",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Slate600
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                match.groups.drop(1).forEach { group ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 2.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "Group ${group.index}: ",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Indigo600
-                                        )
-                                        Text(
-                                            text = "\"${group.value}\"",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontFamily = FontFamily.Monospace,
-                                            color = Slate800
-                                        )
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        Text(
-                                            text = "(${group.range.first}..${group.range.last})",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Slate600,
-                                            fontSize = 11.sp
                                         )
                                     }
                                 }
