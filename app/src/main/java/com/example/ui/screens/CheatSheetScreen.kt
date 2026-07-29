@@ -140,22 +140,8 @@ fun CheatSheetScreen(
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    item {
-                        FilterChip(
-                            selected = selectedCategory == null,
-                            onClick = { selectedCategory = null },
-                            label = { Text("All (${CheatSheetData.items.size})") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Teal600,
-                                selectedLabelColor = Color.White,
-                                containerColor = Color.White,
-                                labelColor = Slate800
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    }
-
-                    items(CheatCategory.entries.toTypedArray()) { category ->
+                    val remainingCategories = CheatCategory.entries.filter { it != CheatCategory.CHARACTERS }
+                    items(remainingCategories) { category ->
                         val isSelected = selectedCategory == category
                         FilterChip(
                             selected = isSelected,

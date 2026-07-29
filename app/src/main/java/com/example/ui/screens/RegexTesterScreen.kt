@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -28,6 +29,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FindReplace
@@ -67,7 +69,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -210,6 +215,8 @@ fun RegexTesterScreen(
     val testTextFocusRequester = remember { FocusRequester() }
     val regexPatternFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
     // Auto-scroll Test Text to keep caret/bottom in view as user types or adds newlines
     LaunchedEffect(state.testString) {
@@ -470,6 +477,30 @@ fun RegexTesterScreen(
                                         ),
                                         shape = RoundedCornerShape(16.dp)
                                     )
+
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    // COPY REGEX PATTERN BUTTON
+                                    IconButton(
+                                        onClick = {
+                                            val flagsStr = state.flags.map { it.code }.joinToString("")
+                                            val textToCopy = if (state.pattern.isEmpty()) "" else "/${state.pattern}/$flagsStr"
+                                            if (textToCopy.isNotEmpty()) {
+                                                clipboardManager.setText(AnnotatedString(textToCopy))
+                                                Toast.makeText(context, "Regex pattern copied: $textToCopy", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "Pattern is empty", Toast.LENGTH_SHORT).show()
+                                            }
+                                        },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentCopy,
+                                            contentDescription = "Copy Regex Pattern",
+                                            tint = Teal600,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.width(6.dp))
 
@@ -847,8 +878,16 @@ fun RegexTesterScreen(
 
     // SAVE PATTERN DIALOG
     if (showSaveDialog) {
-        var titleInput by remember { mutableStateOf("") }
-        var categoryInput by remember { mutableStateOf("General") }
+        val defaultGeneratedTitle = remember(state) {
+            if (state.pattern.isNotBlank()) {
+                "/${state.pattern}/"
+            } else if (state.testString.isNotBlank()) {
+                "Snippet: ${state.testString.replace("\n", " ").take(25)}"
+            } else {
+                "My Pattern"
+            }
+        }
+        var titleInput by remember { mutableStateOf(defaultGeneratedTitle) }
 
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
@@ -870,17 +909,17 @@ fun RegexTesterScreen(
                         label = { Text("Title") },
                         placeholder = { Text("e.g. Email Extractor Test") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedTextField(
-                        value = categoryInput,
-                        onValueChange = { categoryInput = it },
-                        label = { Text("Category") },
-                        placeholder = { Text("e.g. Work / Testing / Snippets") },
-                        singleLine = true,
+                        trailingIcon = if (titleInput.isNotEmpty()) {
+                            {
+                                IconButton(onClick = { titleInput = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear Title",
+                                        tint = Slate600
+                                    )
+                                }
+                            }
+                        } else null,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -888,7 +927,8 @@ fun RegexTesterScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.saveCurrentPattern(titleInput, categoryInput)
+                        val finalTitle = titleInput.ifBlank { defaultGeneratedTitle }
+                        viewModel.saveCurrentPattern(finalTitle, "Saved")
                         showSaveDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Teal600)
