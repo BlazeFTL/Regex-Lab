@@ -1,6 +1,7 @@
 package com.example.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.AppDatabase
@@ -55,12 +56,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _showHint = MutableStateFlow(false)
     val showHint: StateFlow<Boolean> = _showHint.asStateFlow()
 
+    private val prefs = application.getSharedPreferences("regex_lab_prefs", Context.MODE_PRIVATE)
+
     init {
         val dao = AppDatabase.getDatabase(application).regexDao()
         repository = RegexRepository(dao)
 
+        val savedFlagsStr = prefs.getString("saved_flags", "gi") ?: "gi"
+        val initialFlags = parseFlags(savedFlagsStr)
+        _regexState.value = _regexState.value.copy(flags = initialFlags)
+
         // Initial regex evaluation
         evaluateRegex()
+    }
+
+    private fun parseFlags(flagsStr: String): Set<RegexFlag> {
+        val set = mutableSetOf<RegexFlag>()
+        if (flagsStr.contains('g')) set.add(RegexFlag.GLOBAL)
+        if (flagsStr.contains('i')) set.add(RegexFlag.CASE_INSENSITIVE)
+        if (flagsStr.contains('m')) set.add(RegexFlag.MULTILINE)
+        if (flagsStr.contains('s')) set.add(RegexFlag.SINGLELINE)
+        return set
+    }
+
+    private fun saveFlags(flags: Set<RegexFlag>) {
+        val flagsStr = flags.map { it.code }.joinToString("")
+        prefs.edit().putString("saved_flags", flagsStr).apply()
     }
 
     val savedPatterns: StateFlow<List<SavedPatternEntity>> = repository.savedPatterns
@@ -141,6 +162,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             currentFlags.add(flag)
         }
         _regexState.value = _regexState.value.copy(flags = currentFlags)
+        saveFlags(currentFlags)
         evaluateRegex()
     }
 

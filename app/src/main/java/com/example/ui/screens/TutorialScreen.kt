@@ -175,57 +175,7 @@ fun TutorialScreen(
             }
         }
 
-        // LESSON QUICK SELECTOR BAR
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(TutorialData.lessons) { idx, lesson ->
-                val isSelected = idx == pagerState.currentPage
-                val isDone = completedIds.contains(lesson.id)
-
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            if (isSelected) Teal600 else if (isDone) Teal50 else Color.White
-                        )
-                        .border(
-                            1.dp,
-                            if (isSelected) Teal600 else if (isDone) Teal100 else Slate200,
-                            RoundedCornerShape(16.dp)
-                        )
-                        .clickable {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(idx)
-                            }
-                        }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (isDone) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Solved",
-                                tint = if (isSelected) Color.White else Teal600,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                        }
-                        Text(
-                            text = "${idx + 1}. ${lesson.title.split('.').getOrElse(1) { lesson.title }.trim()}",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSelected) Color.White else if (isDone) Teal600 else Slate800
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         // HORIZONTAL PAGER FOR SWIPING LEFT AND RIGHT BETWEEN TUTORIALS
         HorizontalPager(

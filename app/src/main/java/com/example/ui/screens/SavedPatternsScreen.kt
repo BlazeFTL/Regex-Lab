@@ -66,7 +66,8 @@ fun SavedPatternsScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
-    val savedList by viewModel.savedPatterns.collectAsState()
+    val allSavedList by viewModel.savedPatterns.collectAsState()
+    val savedList = remember(allSavedList) { allSavedList.filter { it.category != "History" } }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     val clipboardManager = LocalClipboardManager.current
 

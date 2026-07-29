@@ -20,8 +20,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
@@ -281,13 +283,28 @@ fun RegexTesterScreen(
                     RegexHighlightTransformation(state.matches, null)
                 }
 
-                // Main Editable Text Field with vertical scrolling support for large code pastes
+                // Main Editable Text Area using full card space without inner border, with centered placeholder and vertical scroll
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(testTextScrollState)
                 ) {
-                    OutlinedTextField(
+                    if (state.testString.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Paste Or Type Here...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Slate300,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+
+                    BasicTextField(
                         value = state.testString,
                         onValueChange = { viewModel.updateTestString(it) },
                         modifier = Modifier.fillMaxSize(),
@@ -295,16 +312,10 @@ fun RegexTesterScreen(
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 14.sp,
-                            lineHeight = 22.sp
+                            lineHeight = 22.sp,
+                            color = Slate900
                         ),
-                        placeholder = { Text("Paste Or Type Here...", fontFamily = FontFamily.Monospace) },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Teal600,
-                            unfocusedBorderColor = Slate200,
-                            focusedContainerColor = Slate50,
-                            unfocusedContainerColor = Slate50
-                        )
+                        cursorBrush = SolidColor(Teal600)
                     )
                 }
             }
@@ -375,7 +386,7 @@ fun RegexTesterScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // REGEX PATTERN INPUT FIELD (Inline layout so text wraps at exact right edge, no artificial trailing icon cutoffs)
+                // REGEX PATTERN INPUT FIELD (Inline layout using full width, wrapping text only at end of line)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -389,37 +400,42 @@ fun RegexTesterScreen(
                         modifier = Modifier.padding(end = 4.dp)
                     )
 
-                    OutlinedTextField(
+                    BasicTextField(
                         value = state.pattern,
                         onValueChange = { viewModel.updatePattern(it) },
                         modifier = Modifier.weight(1f),
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 15.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            lineHeight = 22.sp,
+                            color = Slate900,
+                            lineHeight = 20.sp,
                             lineBreak = LineBreak(
                                 strategy = LineBreak.Strategy.Simple,
                                 strictness = LineBreak.Strictness.Loose,
                                 wordBreak = LineBreak.WordBreak.Default
                             )
                         ),
-                        placeholder = {
-                            Text(
-                                "Enter expression...",
-                                fontFamily = FontFamily.Monospace,
-                                color = Slate300
-                            )
-                        },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Teal600,
-                            unfocusedBorderColor = Slate200,
-                            focusedContainerColor = Slate50,
-                            unfocusedContainerColor = Slate50
-                        ),
-                        singleLine = false,
-                        maxLines = 4
+                        cursorBrush = SolidColor(Teal600),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, Slate200, RoundedCornerShape(10.dp))
+                                    .background(Slate50, RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                            ) {
+                                if (state.pattern.isEmpty()) {
+                                    Text(
+                                        "Enter expression...",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 14.sp,
+                                        color = Slate300
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
                     )
 
                     Row(
