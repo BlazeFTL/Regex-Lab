@@ -197,6 +197,10 @@ fun RegexTesterScreen(
 ) {
     val state by viewModel.regexState.collectAsState()
     val savedPatterns by viewModel.savedPatterns.collectAsState()
+    val historyList = remember(savedPatterns) {
+        savedPatterns.filter { it.category == "History" }
+            .distinctBy { Triple(it.pattern, it.testString, Pair(it.flags, it.replaceString)) }
+    }
 
     var showSaveDialog by remember { mutableStateOf(false) }
     var showHistorySheet by remember { mutableStateOf(false) }
@@ -734,7 +738,7 @@ fun RegexTesterScreen(
                         )
                     }
 
-                    if (savedPatterns.isNotEmpty()) {
+                    if (historyList.isNotEmpty()) {
                         TextButton(
                             onClick = { viewModel.clearAllHistory() }
                         ) {
@@ -758,7 +762,7 @@ fun RegexTesterScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                if (savedPatterns.isEmpty()) {
+                if (historyList.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -776,7 +780,7 @@ fun RegexTesterScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.height(340.dp)
                     ) {
-                        items(savedPatterns) { entity ->
+                        items(historyList) { entity ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()

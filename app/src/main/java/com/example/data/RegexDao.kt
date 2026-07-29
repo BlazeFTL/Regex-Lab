@@ -14,6 +14,9 @@ interface RegexDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSavedPattern(pattern: SavedPatternEntity): Long
 
+    @Query("DELETE FROM saved_patterns WHERE category = 'History' AND id NOT IN (SELECT MAX(id) FROM saved_patterns WHERE category = 'History' GROUP BY pattern, flags, testString, replaceString)")
+    suspend fun deleteDuplicateHistory()
+
     @Query("DELETE FROM saved_patterns WHERE id = :id")
     suspend fun deleteSavedPattern(id: Long)
 

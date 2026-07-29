@@ -66,6 +66,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val initialFlags = parseFlags(savedFlagsStr)
         _regexState.value = _regexState.value.copy(flags = initialFlags)
 
+        // Clean up any historical duplicate entries in database
+        viewModelScope.launch {
+            repository.deleteDuplicateHistory()
+        }
+
         // Initial regex evaluation
         evaluateRegex()
     }
@@ -132,18 +137,59 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val title = if (currentState.pattern.isNotBlank()) {
                     "/${currentState.pattern}/"
                 } else {
-                    "Snippet: ${currentState.testString.take(20)}"
+                    "Snippet: ${currentState.testString.replace("\n", " ").take(20)}"
                 }
-                repository.savePattern(
-                    SavedPatternEntity(
-                        title = title,
-                        pattern = currentState.pattern,
-                        flags = flagCodes,
-                        testString = currentState.testString,
-                        replaceString = currentState.replaceString,
-                        category = "History"
+
+                val currentHistory = savedPatterns.value.filter { it.category == "History" }
+
+                // Check if an entry with exact same pattern, flags, test string and replace string exists
+                val exactMatch = currentHistory.firstOrNull {
+                    it.pattern == currentState.pattern &&
+                    it.flags == flagCodes &&
+                    it.testString == currentState.testString &&
+                    it.replaceString == currentState.replaceString
+                }
+
+                if (exactMatch != null) {
+                    // Update timestamp & title of existing entry so it moves to top without creating a duplicate
+                    repository.savePattern(
+                        exactMatch.copy(
+                            title = title,
+                            timestamp = System.currentTimeMillis()
+                        )
                     )
-                )
+                } else {
+                    // If user is typing continuously (most recent history entry created within last 4s)
+                    val lastHistoryItem = currentHistory.firstOrNull()
+                    val now = System.currentTimeMillis()
+                    if (lastHistoryItem != null && (now - lastHistoryItem.timestamp) < 4000) {
+                        repository.savePattern(
+                            lastHistoryItem.copy(
+                                title = title,
+                                pattern = currentState.pattern,
+                                flags = flagCodes,
+                                testString = currentState.testString,
+                                replaceString = currentState.replaceString,
+                                timestamp = now
+                            )
+                        )
+                    } else {
+                        repository.savePattern(
+                            SavedPatternEntity(
+                                title = title,
+                                pattern = currentState.pattern,
+                                flags = flagCodes,
+                                testString = currentState.testString,
+                                replaceString = currentState.replaceString,
+                                category = "History",
+                                timestamp = now
+                            )
+                        )
+                    }
+                }
+
+                // Clean up any duplicate records in database
+                repository.deleteDuplicateHistory()
             }
         }
     }
