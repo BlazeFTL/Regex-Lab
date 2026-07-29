@@ -67,6 +67,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -204,6 +205,7 @@ fun RegexTesterScreen(
     val testTextScrollState = rememberScrollState()
     val testTextFocusRequester = remember { FocusRequester() }
     val regexPatternFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // Auto-scroll Test Text to keep caret/bottom in view as user types or adds newlines
     LaunchedEffect(state.testString) {
@@ -290,6 +292,7 @@ fun RegexTesterScreen(
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         testTextFocusRequester.requestFocus()
+                        keyboardController?.show()
                     },
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -368,6 +371,7 @@ fun RegexTesterScreen(
                                 interactionSource = remember { MutableInteractionSource() }
                             ) {
                                 testTextFocusRequester.requestFocus()
+                                keyboardController?.show()
                             }
                             .verticalScroll(testTextScrollState)
                     ) {
@@ -420,6 +424,7 @@ fun RegexTesterScreen(
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         regexPatternFocusRequester.requestFocus()
+                        keyboardController?.show()
                     },
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
