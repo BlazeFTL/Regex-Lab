@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -200,191 +201,210 @@ fun RegexTesterScreen(
 
     val testTextScrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(Slate50)
-            .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .imePadding()
     ) {
-        // 1. TOP HEADER WITH TITLE AND HISTORY/SAVE ACTIONS
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = "Regex Lab",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Slate900
-                )
-                Text(
-                    text = "By BlazeFTL",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Teal600
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // HISTORY BUTTON
-                IconButton(
-                    onClick = { showHistorySheet = true },
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Teal50)
-                        .border(1.dp, Teal100, CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = "Evaluation History",
-                        tint = Teal600
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // SAVE BUTTON
-                IconButton(
-                    onClick = { showSaveDialog = true },
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Indigo50)
-                        .border(1.dp, Indigo100, CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = "Save Pattern",
-                        tint = Indigo600
-                    )
-                }
-            }
-        }
-
-        // 2. TEXT INPUT BOX - TAKES MAXIMUM AVAILABLE SPACE (WEIGHT 1F)
-        Card(
+        // 1. MAIN SCROLLABLE/EXPANDING CONTENT AREA
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            shape = RoundedCornerShape(14.dp)
+                .fillMaxSize()
+                .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 0.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
+            // 1. TOP HEADER WITH TITLE AND HISTORY/SAVE ACTIONS
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Header row inside Text Card
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column {
                     Text(
-                        text = "TEST TEXT INPUT",
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "Regex Lab",
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Slate600,
-                        letterSpacing = 1.sp
+                        color = Slate900
                     )
+                    Text(
+                        text = "By BlazeFTL",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Teal600
+                    )
+                }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(if (state.matches.isNotEmpty()) Teal600 else Slate300)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // HISTORY BUTTON
+                    IconButton(
+                        onClick = { showHistorySheet = true },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Teal50)
+                            .border(1.dp, Teal100, CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = "Evaluation History",
+                            tint = Teal600
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // SAVE BUTTON
+                    IconButton(
+                        onClick = { showSaveDialog = true },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Indigo50)
+                            .border(1.dp, Indigo100, CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = "Save Pattern",
+                            tint = Indigo600
+                        )
+                    }
+                }
+            }
+
+            // 2. TEXT INPUT BOX - TAKES MAXIMUM AVAILABLE SPACE (WEIGHT 1F)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
+                ) {
+                    // Header row inside Text Card
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "${state.matches.size} match${if (state.matches.size != 1) "es" else ""}",
+                            text = "TEST TEXT INPUT",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = if (state.matches.isNotEmpty()) Teal600 else Slate600
+                            color = Slate600,
+                            letterSpacing = 1.sp
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "(${state.testString.length} chars)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Slate600
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
 
-                        // CLEAR BUTTON
-                        if (state.testString.isNotEmpty()) {
-                            IconButton(
-                                onClick = { viewModel.updateTestString("") },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Clear Text",
-                                    tint = Slate600,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(if (state.matches.isNotEmpty()) Teal600 else Slate300)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "${state.matches.size} match${if (state.matches.size != 1) "es" else ""}",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (state.matches.isNotEmpty()) Teal600 else Slate600
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "(${state.testString.length} chars)",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Slate600
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            // CLEAR BUTTON
+                            if (state.testString.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { viewModel.updateTestString("") },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear Text",
+                                        tint = Slate600,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                val transformation = remember(state.matches) {
-                    RegexHighlightTransformation(state.matches, null)
-                }
-
-                // Main Editable Text Area using full card space with character-level line breaks
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(testTextScrollState)
-                ) {
-                    if (state.testString.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Paste Or Type Here...",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Slate300,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 13.sp
-                            )
-                        }
+                    val transformation = remember(state.matches) {
+                        RegexHighlightTransformation(state.matches, null)
                     }
 
-                    BasicTextField(
-                        value = state.testString,
-                        onValueChange = { viewModel.updateTestString(it) },
-                        modifier = Modifier.fillMaxSize(),
-                        visualTransformation = transformation,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 14.sp,
-                            lineHeight = 22.sp,
-                            color = Slate900,
-                            lineBreak = LineBreak(
-                                strategy = LineBreak.Strategy.Simple,
-                                strictness = LineBreak.Strictness.Strict,
-                                wordBreak = LineBreak.WordBreak.Default
+                    // Main Editable Text Area using full card space with character-level line breaks
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(testTextScrollState)
+                    ) {
+                        if (state.testString.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Paste Or Type Here...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Slate300,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        }
+
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            BasicTextField(
+                                value = state.testString,
+                                onValueChange = { viewModel.updateTestString(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                visualTransformation = transformation,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp,
+                                    lineHeight = 22.sp,
+                                    color = Slate900,
+                                    lineBreak = LineBreak(
+                                        strategy = LineBreak.Strategy.Simple,
+                                        strictness = LineBreak.Strictness.Strict,
+                                        wordBreak = LineBreak.WordBreak.Default
+                                    )
+                                ),
+                                cursorBrush = SolidColor(Teal600)
                             )
-                        ),
-                        cursorBrush = SolidColor(Teal600)
-                    )
+
+                            // Bottom Spacer inside scroll area so end of text is easily visible above overlay
+                            Spacer(modifier = Modifier.height(140.dp))
+                        }
+                    }
                 }
             }
+
+            // Bottom Spacer in Column so card content is not obscured by floating overlay
+            Spacer(modifier = Modifier.height(84.dp))
         }
 
-        // 3. REGEX PATTERN BOX & CONTROLS AT BOTTOM
+        // 3. OVERLAY REGEX PATTERN BOX FLOATING AT BOTTOM
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            shape = RoundedCornerShape(14.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Teal100)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Row(
