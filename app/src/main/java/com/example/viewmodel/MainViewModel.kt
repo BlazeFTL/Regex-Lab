@@ -22,9 +22,9 @@ import kotlinx.coroutines.launch
 import java.util.regex.PatternSyntaxException
 
 data class RegexEvaluationState(
-    val pattern: String = "\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b",
+    val pattern: String = "",
     val testString: String = "",
-    val replaceString: String = "[EMAIL: $0]",
+    val replaceString: String = "",
     val flags: Set<RegexFlag> = setOf(RegexFlag.GLOBAL, RegexFlag.CASE_INSENSITIVE),
     val isReplaceMode: Boolean = false,
     val matches: List<MatchResultItem> = emptyList(),
