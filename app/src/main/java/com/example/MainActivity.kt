@@ -5,9 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -60,6 +67,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RegexLabApp(viewModel: MainViewModel) {
     val selectedTab by viewModel.selectedTab.collectAsState()
+    val isImeVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
 
     val navItems = listOf(
         Triple("Tester", Icons.Default.Code, 0),
@@ -71,37 +79,43 @@ fun RegexLabApp(viewModel: MainViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp,
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            AnimatedVisibility(
+                visible = !isImeVisible,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
             ) {
-                navItems.forEach { (title, icon, index) ->
-                    val isSelected = selectedTab == index
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = { viewModel.setTab(index) },
-                        icon = {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = title
+                NavigationBar(
+                    containerColor = Color.White,
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                ) {
+                    navItems.forEach { (title, icon, index) ->
+                        val isSelected = selectedTab == index
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = { viewModel.setTab(index) },
+                            icon = {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = title
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = title,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Teal600,
+                                selectedTextColor = Teal600,
+                                indicatorColor = Teal100,
+                                unselectedIconColor = Slate600,
+                                unselectedTextColor = Slate600
                             )
-                        },
-                        label = {
-                            Text(
-                                text = title,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Teal600,
-                            selectedTextColor = Teal600,
-                            indicatorColor = Teal100,
-                            unselectedIconColor = Slate600,
-                            unselectedTextColor = Slate600
                         )
-                    )
+                    }
                 }
             }
         }
@@ -109,7 +123,10 @@ fun RegexLabApp(viewModel: MainViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = if (isImeVisible) 0.dp else innerPadding.calculateBottomPadding()
+                )
         ) {
             when (selectedTab) {
                 0 -> RegexTesterScreen(viewModel = viewModel)
