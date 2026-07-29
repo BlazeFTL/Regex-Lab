@@ -198,7 +198,6 @@ fun RegexTesterScreen(
     var showHistorySheet by remember { mutableStateOf(false) }
     var showFlagsMenu by remember { mutableStateOf(false) }
 
-    val outerScrollState = rememberScrollState()
     val testTextScrollState = rememberScrollState()
 
     Column(
@@ -206,7 +205,6 @@ fun RegexTesterScreen(
             .fillMaxSize()
             .background(Slate50)
             .imePadding()
-            .verticalScroll(outerScrollState)
             .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -266,11 +264,11 @@ fun RegexTesterScreen(
             }
         }
 
-        // 2. TEXT INPUT BOX - TAKES MAXIMUM SPACE AND SCROLLS WITH KEYBOARD
+        // 2. TEXT INPUT BOX - TAKES MAXIMUM AVAILABLE SPACE (WEIGHT 1F)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 280.dp, max = 500.dp),
+                .weight(1f),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             shape = RoundedCornerShape(14.dp)
