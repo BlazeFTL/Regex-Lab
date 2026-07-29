@@ -79,13 +79,11 @@ fun CheatSheetScreen(
     val clipboardManager = LocalClipboardManager.current
 
     val filteredItems = CheatSheetData.items.filter { item ->
-        val matchesCategory = selectedCategory == null || item.category == selectedCategory
-        val matchesSearch = searchQuery.isEmpty() ||
+        searchQuery.isEmpty() ||
                 item.token.contains(searchQuery, ignoreCase = true) ||
                 item.title.contains(searchQuery, ignoreCase = true) ||
                 item.description.contains(searchQuery, ignoreCase = true) ||
                 item.example.contains(searchQuery, ignoreCase = true)
-        matchesCategory && matchesSearch
     }
 
     Column(
@@ -135,31 +133,6 @@ fun CheatSheetScreen(
                 )
             }
 
-            // CATEGORY FILTER CHIPS
-            item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val remainingCategories = CheatCategory.entries.filter { it != CheatCategory.CHARACTERS }
-                    items(remainingCategories) { category ->
-                        val isSelected = selectedCategory == category
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                selectedCategory = if (isSelected) null else category
-                            },
-                            label = { Text(category.title) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Teal600,
-                                selectedLabelColor = Color.White,
-                                containerColor = Color.White,
-                                labelColor = Slate800
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    }
-                }
-            }
             items(filteredItems) { item ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
