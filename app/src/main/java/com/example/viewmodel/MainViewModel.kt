@@ -116,8 +116,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (prebuilt.flags.contains('i')) flagsSet.add(RegexFlag.CASE_INSENSITIVE)
         if (prebuilt.flags.contains('m')) flagsSet.add(RegexFlag.MULTILINE)
         if (prebuilt.flags.contains('s')) flagsSet.add(RegexFlag.SINGLELINE)
-        if (prebuilt.flags.contains('u')) flagsSet.add(RegexFlag.UNICODE)
-        if (prebuilt.flags.contains('x')) flagsSet.add(RegexFlag.COMMENTS)
 
         _regexState.value = _regexState.value.copy(
             pattern = prebuilt.pattern,
@@ -135,8 +133,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (flagsStr.contains('i')) flagsSet.add(RegexFlag.CASE_INSENSITIVE)
         if (flagsStr.contains('m')) flagsSet.add(RegexFlag.MULTILINE)
         if (flagsStr.contains('s')) flagsSet.add(RegexFlag.SINGLELINE)
-        if (flagsStr.contains('u')) flagsSet.add(RegexFlag.UNICODE)
-        if (flagsStr.contains('x')) flagsSet.add(RegexFlag.COMMENTS)
 
         _regexState.value = _regexState.value.copy(
             pattern = pattern,

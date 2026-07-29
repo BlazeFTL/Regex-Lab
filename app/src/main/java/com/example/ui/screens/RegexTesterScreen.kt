@@ -20,25 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FindReplace
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -70,16 +63,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.MatchResultItem
-import com.example.model.PrebuiltPattern
 import com.example.model.PrebuiltPatternLibrary
 import com.example.model.RegexFlag
-import com.example.ui.components.HighlightedCodeText
-import com.example.ui.theme.Amber500
 import com.example.ui.theme.Emerald500
 import com.example.ui.theme.Indigo100
 import com.example.ui.theme.Indigo50
@@ -98,6 +93,44 @@ import com.example.ui.theme.Teal50
 import com.example.ui.theme.Teal600
 import com.example.viewmodel.MainViewModel
 
+/**
+ * VisualTransformation that dynamically highlights regex matches inside the editable text input box.
+ */
+class RegexHighlightTransformation(
+    private val matches: List<MatchResultItem>,
+    private val selectedMatchIndex: Int? = null
+) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val raw = text.text
+        if (raw.isEmpty() || matches.isEmpty()) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
+        val annotatedString = buildAnnotatedString {
+            append(raw)
+            val sortedMatches = matches.sortedBy { it.range.first }
+            sortedMatches.forEachIndexed { idx, match ->
+                val start = match.range.first.coerceIn(0, raw.length)
+                val end = (match.range.last + 1).coerceIn(0, raw.length)
+                if (start < end) {
+                    val colorPair = MatchHighlights[idx % MatchHighlights.size]
+                    val isSelected = selectedMatchIndex == match.matchIndex
+                    addStyle(
+                        style = SpanStyle(
+                            background = if (isSelected) colorPair.border else colorPair.bg,
+                            color = colorPair.text,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        start = start,
+                        end = end
+                    )
+                }
+            }
+        }
+        return TransformedText(annotatedString, OffsetMapping.Identity)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RegexTesterScreen(
@@ -109,7 +142,6 @@ fun RegexTesterScreen(
     var showPresetSheet by remember { mutableStateOf(false) }
     var selectedMatchItem by remember { mutableStateOf<MatchResultItem?>(null) }
     val clipboardManager = LocalClipboardManager.current
-    var copiedFeedback by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -124,7 +156,7 @@ fun RegexTesterScreen(
         ) {
             item { Spacer(modifier = Modifier.height(12.dp)) }
 
-            // Title & Action Header
+            // 1. TITLE & ACTION HEADER
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -139,9 +171,10 @@ fun RegexTesterScreen(
                             color = Slate900
                         )
                         Text(
-                            text = "Real-time regular expression evaluator & syntax inspector",
+                            text = "By BlazeFTL",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Slate600
+                            fontWeight = FontWeight.SemiBold,
+                            color = Teal600
                         )
                     }
 
@@ -179,44 +212,142 @@ fun RegexTesterScreen(
                 }
             }
 
-            // Quick Preset Bar
+            // 2. TEXT INPUT BOX AT TOP (MATCHES HIGHLIGHTED DIRECTLY IN THIS BOX)
             item {
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(
-                        text = "Quick Load:",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate600
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(PrebuiltPatternLibrary.items.take(5)) { preset ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color.White)
-                                    .border(1.dp, Slate200, RoundedCornerShape(16.dp))
-                                    .clickable { viewModel.loadPrebuiltPattern(preset) }
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = preset.title,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Slate800,
-                                    fontWeight = FontWeight.Medium
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "TEST TEXT INPUT",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Slate600,
+                                letterSpacing = 1.sp
+                            )
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(if (state.matches.isNotEmpty()) Teal600 else Slate300)
                                 )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "${state.matches.size} match${if (state.matches.size != 1) "es" else ""}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (state.matches.isNotEmpty()) Teal600 else Slate600
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "(${state.testString.length} chars)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Slate600
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val transformation = remember(state.matches, selectedMatchItem) {
+                            RegexHighlightTransformation(state.matches, selectedMatchItem?.matchIndex)
+                        }
+
+                        OutlinedTextField(
+                            value = state.testString,
+                            onValueChange = { viewModel.updateTestString(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp),
+                            visualTransformation = transformation,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
+                            ),
+                            placeholder = { Text("Paste or type text to test regex against...") },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Teal600,
+                                unfocusedBorderColor = Slate200,
+                                focusedContainerColor = Slate50,
+                                unfocusedContainerColor = Slate50
+                            )
+                        )
+
+                        // Quick Match Chips below text input box
+                        if (state.matches.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Quick Match Chips:",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Slate600
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                state.matches.take(12).forEachIndexed { idx, match ->
+                                    val colorPair = MatchHighlights[idx % MatchHighlights.size]
+                                    val isSelected = selectedMatchItem?.matchIndex == match.matchIndex
+
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(if (isSelected) colorPair.border else colorPair.bg)
+                                            .border(1.dp, colorPair.border, RoundedCornerShape(16.dp))
+                                            .clickable { selectedMatchItem = if (isSelected) null else match }
+                                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "#${match.matchIndex + 1}: ",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = colorPair.text,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = if (match.value.length > 18) match.value.take(15) + "..." else match.value,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = FontFamily.Monospace,
+                                            color = colorPair.text,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                                if (state.matches.size > 12) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(Slate200)
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = "+${state.matches.size - 12} more",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Slate800,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // REGEX PATTERN INPUT CARD
+            // 3. REGEX PATTERN INPUT CARD (BELOW TEXT INPUT BOX)
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -332,7 +463,7 @@ fun RegexTesterScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // REGEX FLAG TOGGLES
+                        // REGEX FLAG TOGGLES (u AND x FLAGS REMOVED)
                         Text(
                             text = "Regex Modifier Flags:",
                             style = MaterialTheme.typography.labelSmall,
@@ -381,71 +512,7 @@ fun RegexTesterScreen(
                 }
             }
 
-            // TEST STRING INPUT CARD
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "TEST TEXT INPUT",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Slate600,
-                                letterSpacing = 1.sp
-                            )
-
-                            Text(
-                                text = "${state.testString.length} chars",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Slate600
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = state.testString,
-                            onValueChange = { viewModel.updateTestString(it) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(110.dp),
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 14.sp
-                            ),
-                            placeholder = { Text("Paste or type text to test regex against...") },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Teal600,
-                                unfocusedBorderColor = Slate200,
-                                focusedContainerColor = Slate50,
-                                unfocusedContainerColor = Slate50
-                            )
-                        )
-                    }
-                }
-            }
-
-            // REAL-TIME HIGHLIGHT OVERLAY
-            item {
-                HighlightedCodeText(
-                    text = state.testString,
-                    matches = state.matches,
-                    selectedMatchIndex = selectedMatchItem?.matchIndex,
-                    onMatchClick = { match -> selectedMatchItem = match }
-                )
-            }
-
-            // REPLACEMENT & SUBSTITUTION PREVIEW MODE
+            // 4. REPLACEMENT & SUBSTITUTION PREVIEW MODE
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -546,7 +613,7 @@ fun RegexTesterScreen(
                 }
             }
 
-            // CAPTURED GROUPS BREAKDOWN
+            // 5. CAPTURED GROUPS BREAKDOWN
             if (state.matches.isNotEmpty()) {
                 item {
                     Text(
