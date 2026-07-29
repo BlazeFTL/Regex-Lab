@@ -107,42 +107,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedTab.value = index
     }
 
-    private var autoSaveJob: Job? = null
-
     fun updatePattern(newPattern: String) {
         _regexState.value = _regexState.value.copy(pattern = newPattern)
         evaluateRegex()
-        scheduleAutoSaveHistory()
     }
 
     fun updateTestString(newText: String) {
         _regexState.value = _regexState.value.copy(testString = newText)
         evaluateRegex()
-        scheduleAutoSaveHistory()
     }
 
     fun updateReplaceString(newReplace: String) {
         _regexState.value = _regexState.value.copy(replaceString = newReplace)
         evaluateRegex()
-        scheduleAutoSaveHistory()
     }
 
-    private fun scheduleAutoSaveHistory() {
-        autoSaveJob?.cancel()
-        autoSaveJob = viewModelScope.launch {
-            delay(1000)
+    fun commitCurrentSessionToHistory() {
+        viewModelScope.launch {
             val currentState = _regexState.value
             if (currentState.pattern.isNotBlank() || currentState.testString.isNotBlank()) {
                 val flagCodes = currentState.flags.map { it.code }.joinToString("")
                 val title = if (currentState.pattern.isNotBlank()) {
                     "/${currentState.pattern}/"
                 } else {
-                    "Snippet: ${currentState.testString.replace("\n", " ").take(20)}"
+                    "Snippet: ${currentState.testString.replace("\n", " ").take(25)}"
                 }
 
                 val currentHistory = savedPatterns.value.filter { it.category == "History" }
-
-                // Check if an entry with exact same pattern, flags, test string and replace string exists
                 val exactMatch = currentHistory.firstOrNull {
                     it.pattern == currentState.pattern &&
                     it.flags == flagCodes &&
@@ -151,7 +142,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 if (exactMatch != null) {
-                    // Update timestamp & title of existing entry so it moves to top without creating a duplicate
                     repository.savePattern(
                         exactMatch.copy(
                             title = title,
@@ -159,39 +149,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     )
                 } else {
-                    // If user is typing continuously (most recent history entry created within last 4s)
-                    val lastHistoryItem = currentHistory.firstOrNull()
-                    val now = System.currentTimeMillis()
-                    if (lastHistoryItem != null && (now - lastHistoryItem.timestamp) < 4000) {
-                        repository.savePattern(
-                            lastHistoryItem.copy(
-                                title = title,
-                                pattern = currentState.pattern,
-                                flags = flagCodes,
-                                testString = currentState.testString,
-                                replaceString = currentState.replaceString,
-                                timestamp = now
-                            )
+                    repository.savePattern(
+                        SavedPatternEntity(
+                            title = title,
+                            pattern = currentState.pattern,
+                            flags = flagCodes,
+                            testString = currentState.testString,
+                            replaceString = currentState.replaceString,
+                            category = "History",
+                            timestamp = System.currentTimeMillis()
                         )
-                    } else {
-                        repository.savePattern(
-                            SavedPatternEntity(
-                                title = title,
-                                pattern = currentState.pattern,
-                                flags = flagCodes,
-                                testString = currentState.testString,
-                                replaceString = currentState.replaceString,
-                                category = "History",
-                                timestamp = now
-                            )
-                        )
-                    }
+                    )
                 }
-
-                // Clean up any duplicate records in database
                 repository.deleteDuplicateHistory()
             }
         }
+    }
+
+    fun clearTestString() {
+        commitCurrentSessionToHistory()
+        updateTestString("")
+    }
+
+    fun clearPattern() {
+        commitCurrentSessionToHistory()
+        updatePattern("")
     }
 
     fun clearAllHistory() {
@@ -218,6 +200,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadPrebuiltPattern(prebuilt: PrebuiltPattern) {
+        commitCurrentSessionToHistory()
         val flagsSet = mutableSetOf<RegexFlag>()
         if (prebuilt.flags.contains('g')) flagsSet.add(RegexFlag.GLOBAL)
         if (prebuilt.flags.contains('i')) flagsSet.add(RegexFlag.CASE_INSENSITIVE)
@@ -235,6 +218,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadCustomPattern(title: String, pattern: String, flagsStr: String, testStr: String, replaceStr: String) {
+        commitCurrentSessionToHistory()
         val flagsSet = mutableSetOf<RegexFlag>()
         if (flagsStr.contains('g')) flagsSet.add(RegexFlag.GLOBAL)
         if (flagsStr.contains('i')) flagsSet.add(RegexFlag.CASE_INSENSITIVE)

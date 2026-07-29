@@ -254,7 +254,10 @@ fun RegexTesterScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // HISTORY BUTTON
                     IconButton(
-                        onClick = { showHistorySheet = true },
+                        onClick = {
+                            viewModel.commitCurrentSessionToHistory()
+                            showHistorySheet = true
+                        },
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(Teal50)
@@ -341,7 +344,7 @@ fun RegexTesterScreen(
                                 // CLEAR BUTTON
                                 if (state.testString.isNotEmpty()) {
                                     IconButton(
-                                        onClick = { viewModel.updateTestString("") },
+                                        onClick = { viewModel.clearTestString() },
                                         modifier = Modifier.size(24.dp)
                                     ) {
                                         Icon(
@@ -473,7 +476,7 @@ fun RegexTesterScreen(
                                     // CLEAR PATTERN BUTTON
                                     if (state.pattern.isNotEmpty()) {
                                         IconButton(
-                                            onClick = { viewModel.updatePattern("") },
+                                            onClick = { viewModel.clearPattern() },
                                             modifier = Modifier.size(28.dp)
                                         ) {
                                             Icon(
