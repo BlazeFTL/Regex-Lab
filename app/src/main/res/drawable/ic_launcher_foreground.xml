@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:width="66dp"
-        android:height="66dp"
-        android:drawable="@drawable/regex_lab_icon_1785317414366"
+        android:width="72dp"
+        android:height="72dp"
+        android:drawable="@drawable/regex_lab_icon_new_1785329652808"
         android:gravity="center" />
 </layer-list>
