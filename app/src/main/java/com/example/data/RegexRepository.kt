@@ -14,6 +14,10 @@ class RegexRepository(private val regexDao: RegexDao) {
         regexDao.deleteSavedPattern(id)
     }
 
+    suspend fun clearAllHistory() {
+        regexDao.clearAllSavedPatterns()
+    }
+
     suspend fun markLessonCompleted(lessonId: String, userPattern: String) {
         regexDao.saveTutorialProgress(
             TutorialProgressEntity(

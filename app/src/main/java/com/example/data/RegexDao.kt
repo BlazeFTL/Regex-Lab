@@ -17,6 +17,9 @@ interface RegexDao {
     @Query("DELETE FROM saved_patterns WHERE id = :id")
     suspend fun deleteSavedPattern(id: Long)
 
+    @Query("DELETE FROM saved_patterns")
+    suspend fun clearAllSavedPatterns()
+
     @Query("SELECT * FROM tutorial_progress")
     fun getAllTutorialProgress(): Flow<List<TutorialProgressEntity>>
 

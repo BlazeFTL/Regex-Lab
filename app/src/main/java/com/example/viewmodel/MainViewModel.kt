@@ -12,6 +12,8 @@ import com.example.model.PrebuiltPattern
 import com.example.model.RegexFlag
 import com.example.model.TutorialData
 import com.example.model.TutorialLesson
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -79,19 +81,56 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedTab.value = index
     }
 
+    private var autoSaveJob: Job? = null
+
     fun updatePattern(newPattern: String) {
         _regexState.value = _regexState.value.copy(pattern = newPattern)
         evaluateRegex()
+        scheduleAutoSaveHistory()
     }
 
     fun updateTestString(newText: String) {
         _regexState.value = _regexState.value.copy(testString = newText)
         evaluateRegex()
+        scheduleAutoSaveHistory()
     }
 
     fun updateReplaceString(newReplace: String) {
         _regexState.value = _regexState.value.copy(replaceString = newReplace)
         evaluateRegex()
+        scheduleAutoSaveHistory()
+    }
+
+    private fun scheduleAutoSaveHistory() {
+        autoSaveJob?.cancel()
+        autoSaveJob = viewModelScope.launch {
+            delay(1000)
+            val currentState = _regexState.value
+            if (currentState.pattern.isNotBlank() || currentState.testString.isNotBlank()) {
+                val flagCodes = currentState.flags.map { it.code }.joinToString("")
+                val title = if (currentState.pattern.isNotBlank()) {
+                    "/${currentState.pattern}/"
+                } else {
+                    "Snippet: ${currentState.testString.take(20)}"
+                }
+                repository.savePattern(
+                    SavedPatternEntity(
+                        title = title,
+                        pattern = currentState.pattern,
+                        flags = flagCodes,
+                        testString = currentState.testString,
+                        replaceString = currentState.replaceString,
+                        category = "History"
+                    )
+                )
+            }
+        }
+    }
+
+    fun clearAllHistory() {
+        viewModelScope.launch {
+            repository.clearAllHistory()
+        }
     }
 
     fun toggleFlag(flag: RegexFlag) {

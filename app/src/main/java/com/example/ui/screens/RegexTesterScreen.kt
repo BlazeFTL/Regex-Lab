@@ -17,12 +17,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.Flag
@@ -37,6 +40,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +61,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -64,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.MatchResultItem
@@ -138,12 +143,14 @@ fun RegexTesterScreen(
     var showHistorySheet by remember { mutableStateOf(false) }
     var showFlagsMenu by remember { mutableStateOf(false) }
 
+    val testTextScrollState = rememberScrollState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Slate50)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // 1. TOP HEADER WITH TITLE AND HISTORY/SAVE ACTIONS
         Row(
@@ -166,8 +173,8 @@ fun RegexTesterScreen(
                 )
             }
 
-            Row {
-                // HISTORY BUTTON (Replaced pre-built library)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // HISTORY BUTTON
                 IconButton(
                     onClick = { showHistorySheet = true },
                     modifier = Modifier
@@ -201,19 +208,19 @@ fun RegexTesterScreen(
             }
         }
 
-        // 2. TEXT INPUT BOX - TAKES MAJORITY OF THE SCREEN
+        // 2. TEXT INPUT BOX - TAKES MAJORITY OF THE SCREEN WITH MAXIMUM SPACE
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(14.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(10.dp)
             ) {
                 // Header row inside Text Card
                 Row(
@@ -268,32 +275,38 @@ fun RegexTesterScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 val transformation = remember(state.matches) {
                     RegexHighlightTransformation(state.matches, null)
                 }
 
-                // Main Editable Text Field occupying full vertical space
-                OutlinedTextField(
-                    value = state.testString,
-                    onValueChange = { viewModel.updateTestString(it) },
-                    modifier = Modifier.fillMaxSize(),
-                    visualTransformation = transformation,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 14.sp,
-                        lineHeight = 22.sp
-                    ),
-                    placeholder = { Text("Paste Or Type Here", fontFamily = FontFamily.Monospace) },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Teal600,
-                        unfocusedBorderColor = Slate200,
-                        focusedContainerColor = Slate50,
-                        unfocusedContainerColor = Slate50
+                // Main Editable Text Field with vertical scrolling support for large code pastes
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(testTextScrollState)
+                ) {
+                    OutlinedTextField(
+                        value = state.testString,
+                        onValueChange = { viewModel.updateTestString(it) },
+                        modifier = Modifier.fillMaxSize(),
+                        visualTransformation = transformation,
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 14.sp,
+                            lineHeight = 22.sp
+                        ),
+                        placeholder = { Text("Paste Or Type Here...", fontFamily = FontFamily.Monospace) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Teal600,
+                            unfocusedBorderColor = Slate200,
+                            focusedContainerColor = Slate50,
+                            unfocusedContainerColor = Slate50
+                        )
                     )
-                )
+                }
             }
         }
 
@@ -302,9 +315,9 @@ fun RegexTesterScreen(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(14.dp)
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -319,18 +332,27 @@ fun RegexTesterScreen(
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // REPLACE MODE TOGGLE BUTTON NEAR X/ACTIONS
-                        IconButton(
+                        // REPLACE MODE CHIP TOGGLE
+                        FilterChip(
+                            selected = state.isReplaceMode,
                             onClick = { viewModel.toggleReplaceMode(!state.isReplaceMode) },
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.FindReplace,
-                                contentDescription = "Toggle Replace",
-                                tint = if (state.isReplaceMode) Indigo600 else Slate600,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                            label = { Text(if (state.isReplaceMode) "Replace ON" else "Replace Mode", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.FindReplace,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Indigo600,
+                                selectedLabelColor = Color.White,
+                                selectedLeadingIconColor = Color.White,
+                                containerColor = Slate100,
+                                labelColor = Slate800
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        )
 
                         Spacer(modifier = Modifier.width(6.dp))
 
@@ -351,129 +373,137 @@ fun RegexTesterScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                // REGEX PATTERN INPUT FIELD (Supports full multiline wrap, no cutoffs)
-                OutlinedTextField(
-                    value = state.pattern,
-                    onValueChange = { viewModel.updatePattern(it) },
+                // REGEX PATTERN INPUT FIELD (Inline layout so text wraps at exact right edge, no artificial trailing icon cutoffs)
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "/",
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        lineHeight = 22.sp
-                    ),
-                    placeholder = {
-                        Text(
-                            "Enter expression...",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Teal600,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = state.pattern,
+                        onValueChange = { viewModel.updatePattern(it) },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = FontFamily.Monospace,
-                            color = Slate300
-                        )
-                    },
-                    leadingIcon = {
-                        Text(
-                            "/",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Teal600,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                    },
-                    trailingIcon = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            val activeFlagsStr = state.flags.map { it.code }.joinToString("")
-                            Text(
-                                "/" + activeFlagsStr,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Indigo600
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 22.sp,
+                            lineBreak = LineBreak(
+                                strategy = LineBreak.Strategy.Simple,
+                                strictness = LineBreak.Strictness.Loose,
+                                wordBreak = LineBreak.WordBreak.Default
                             )
+                        ),
+                        placeholder = {
+                            Text(
+                                "Enter expression...",
+                                fontFamily = FontFamily.Monospace,
+                                color = Slate300
+                            )
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Teal600,
+                            unfocusedBorderColor = Slate200,
+                            focusedContainerColor = Slate50,
+                            unfocusedContainerColor = Slate50
+                        ),
+                        singleLine = false,
+                        maxLines = 4
+                    )
 
-                            // FLAG ICON BUTTON - OPENS DROPDOWN POPUP
-                            Box {
-                                IconButton(
-                                    onClick = { showFlagsMenu = true },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Flag,
-                                        contentDescription = "Regex Flags",
-                                        tint = Teal600,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 4.dp)
+                    ) {
+                        val activeFlagsStr = state.flags.map { it.code }.joinToString("")
+                        Text(
+                            "/" + activeFlagsStr,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Indigo600
+                        )
 
-                                // DROPDOWN POPUP FOR FLAGS
-                                DropdownMenu(
-                                    expanded = showFlagsMenu,
-                                    onDismissRequest = { showFlagsMenu = false },
-                                    modifier = Modifier
-                                        .background(Color.White)
-                                        .padding(4.dp)
-                                ) {
-                                    Text(
-                                        text = "  Regex Flags",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Slate600,
-                                        modifier = Modifier.padding(vertical = 4.dp)
-                                    )
+                        // FLAG ICON BUTTON - OPENS DROPDOWN POPUP
+                        Box {
+                            IconButton(
+                                onClick = { showFlagsMenu = true },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Flag,
+                                    contentDescription = "Regex Flags",
+                                    tint = Teal600,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
 
-                                    RegexFlag.entries.forEach { flag ->
-                                        val isSelected = state.flags.contains(flag)
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable { viewModel.toggleFlag(flag) }
-                                                .padding(horizontal = 8.dp, vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Checkbox(
-                                                checked = isSelected,
-                                                onCheckedChange = { viewModel.toggleFlag(flag) },
-                                                colors = CheckboxDefaults.colors(
-                                                    checkedColor = Teal600,
-                                                    uncheckedColor = Slate300
-                                                ),
-                                                modifier = Modifier.size(24.dp)
+                            // DROPDOWN POPUP FOR FLAGS
+                            DropdownMenu(
+                                expanded = showFlagsMenu,
+                                onDismissRequest = { showFlagsMenu = false },
+                                modifier = Modifier
+                                    .background(Color.White)
+                                    .padding(4.dp)
+                            ) {
+                                Text(
+                                    text = "  Regex Flags",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Slate600,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+
+                                RegexFlag.entries.forEach { flag ->
+                                    val isSelected = state.flags.contains(flag)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { viewModel.toggleFlag(flag) }
+                                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = isSelected,
+                                            onCheckedChange = { viewModel.toggleFlag(flag) },
+                                            colors = CheckboxDefaults.colors(
+                                                checkedColor = Teal600,
+                                                uncheckedColor = Slate300
+                                            ),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = "${flag.flagName} (${flag.code})",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Slate900
                                             )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Column {
-                                                Text(
-                                                    text = "${flag.flagName} (${flag.code})",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Slate900
-                                                )
-                                                Text(
-                                                    text = flag.description,
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = Slate600,
-                                                    fontSize = 10.sp
-                                                )
-                                            }
+                                            Text(
+                                                text = flag.description,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Slate600,
+                                                fontSize = 10.sp
+                                            )
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Teal600,
-                        unfocusedBorderColor = Slate200,
-                        focusedContainerColor = Slate50,
-                        unfocusedContainerColor = Slate50
-                    ),
-                    singleLine = false,
-                    maxLines = 4
-                )
+                    }
+                }
 
                 // Error Message Display
                 AnimatedVisibility(visible = state.error != null) {
@@ -559,7 +589,7 @@ fun RegexTesterScreen(
         }
     }
 
-    // HISTORY BOTTOM SHEET
+    // HISTORY BOTTOM SHEET (Auto-Saved History)
     if (showHistorySheet) {
         ModalBottomSheet(
             onDismissRequest = { showHistorySheet = false },
@@ -584,21 +614,36 @@ fun RegexTesterScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Evaluation History & Saved",
+                            text = "Evaluation History",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Slate900
                         )
                     }
+
+                    if (savedPatterns.isNotEmpty()) {
+                        TextButton(
+                            onClick = { viewModel.clearAllHistory() }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Clear History",
+                                tint = Rose500,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Clear History", color = Rose500, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
 
                 Text(
-                    text = "Tap any entry to restore pattern and test input into tester",
+                    text = "Automatically logs tests as you type. Tap any entry to restore.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Slate600
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 if (savedPatterns.isEmpty()) {
                     Box(
@@ -608,7 +653,7 @@ fun RegexTesterScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No saved patterns in history yet.\nClick the Save button in top right to store your current test!",
+                            text = "No history recorded yet.\nStart typing expressions in the tester to auto-log your work!",
                             style = MaterialTheme.typography.bodySmall,
                             color = Slate600
                         )
@@ -653,14 +698,16 @@ fun RegexTesterScreen(
                                             color = Slate600
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "/${entity.pattern}/${entity.flags}",
-                                        fontFamily = FontFamily.Monospace,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Slate900
-                                    )
+                                    if (entity.pattern.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "/${entity.pattern}/${entity.flags}",
+                                            fontFamily = FontFamily.Monospace,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Slate900
+                                        )
+                                    }
                                     if (entity.testString.isNotEmpty()) {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
@@ -686,7 +733,7 @@ fun RegexTesterScreen(
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
             title = {
-                Text("Save to History Library", fontWeight = FontWeight.Bold)
+                Text("Save to Library", fontWeight = FontWeight.Bold)
             },
             text = {
                 Column {
