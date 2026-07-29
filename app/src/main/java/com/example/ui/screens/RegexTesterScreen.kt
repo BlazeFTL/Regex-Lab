@@ -36,6 +36,8 @@ import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Settings
+import com.example.model.AppThemeData
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -95,6 +97,7 @@ import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate300
 import com.example.ui.theme.Slate50
 import com.example.ui.theme.Slate600
+import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
 import com.example.ui.theme.Teal100
 import com.example.ui.theme.Teal50
@@ -207,8 +210,12 @@ fun RegexTesterScreen(
             .distinctBy { Triple(it.pattern, it.testString, Pair(it.flags, it.replaceString)) }
     }
 
+    val settings by viewModel.appSettings.collectAsState()
+    val activeTheme = remember(settings.themeId) { AppThemeData.getThemeById(settings.themeId) }
+
     var showSaveDialog by remember { mutableStateOf(false) }
     var showHistorySheet by remember { mutableStateOf(false) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
     var showFlagsMenu by remember { mutableStateOf(false) }
 
     val testTextScrollState = rememberScrollState()
@@ -267,30 +274,49 @@ fun RegexTesterScreen(
                         },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Teal50)
-                            .border(1.dp, Teal100, CircleShape)
+                            .background(activeTheme.primaryContainer)
+                            .border(1.dp, activeTheme.primaryContainer, CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = "Evaluation History",
-                            tint = Teal600
+                            tint = activeTheme.primaryColor
                         )
+                    }
+
+                    if (!settings.hideSaveButton) {
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // SAVE BUTTON
+                        IconButton(
+                            onClick = { showSaveDialog = true },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Indigo50)
+                                .border(1.dp, Indigo100, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Save,
+                                contentDescription = "Save Pattern",
+                                tint = Indigo600
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // SAVE BUTTON
+                    // SETTINGS BUTTON
                     IconButton(
-                        onClick = { showSaveDialog = true },
+                        onClick = { showSettingsSheet = true },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Indigo50)
-                            .border(1.dp, Indigo100, CircleShape)
+                            .background(Slate100)
+                            .border(1.dp, Slate200, CircleShape)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Save,
-                            contentDescription = "Save Pattern",
-                            tint = Indigo600
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = Slate800
                         )
                     }
                 }
@@ -941,6 +967,13 @@ fun RegexTesterScreen(
                     Text("Cancel")
                 }
             }
+        )
+    }
+
+    if (showSettingsSheet) {
+        SettingsSheet(
+            viewModel = viewModel,
+            onDismiss = { showSettingsSheet = false }
         )
     }
 }

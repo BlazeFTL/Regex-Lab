@@ -51,6 +51,8 @@ import com.example.ui.theme.Teal100
 import com.example.ui.theme.Teal600
 import com.example.viewmodel.MainViewModel
 
+import com.example.model.AppThemeData
+
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
@@ -58,7 +60,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RegexLabTheme {
+            val settings by mainViewModel.appSettings.collectAsState()
+            RegexLabTheme(settings = settings) {
                 RegexLabApp(viewModel = mainViewModel)
             }
         }
@@ -68,21 +71,30 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RegexLabApp(viewModel: MainViewModel) {
     val selectedTab by viewModel.selectedTab.collectAsState()
+    val settings by viewModel.appSettings.collectAsState()
+    val activeTheme = AppThemeData.getThemeById(settings.themeId)
     val isImeVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
 
-    val navItems = listOf(
-        Triple("Tester", Icons.Default.Code, 0),
-        Triple("Cheat Sheet", Icons.Default.MenuBook, 1),
-        Triple("Tutorials", Icons.Default.School, 2),
-        Triple("Saved", Icons.Default.Bookmark, 3)
-    )
+    val navItems = mutableListOf<Triple<String, androidx.compose.ui.graphics.vector.ImageVector, Int>>()
+    navItems.add(Triple("Tester", Icons.Default.Code, 0))
+    if (!settings.hideCheatSheet && !settings.hideAllBottomBar) {
+        navItems.add(Triple("Cheat Sheet", Icons.Default.MenuBook, 1))
+    }
+    if (!settings.hideTutorials && !settings.hideAllBottomBar) {
+        navItems.add(Triple("Tutorials", Icons.Default.School, 2))
+    }
+    if (!settings.hideSaved && !settings.hideAllBottomBar) {
+        navItems.add(Triple("Saved", Icons.Default.Bookmark, 3))
+    }
+
+    val showBottomBar = !isImeVisible && !settings.hideAllBottomBar && navItems.size > 1
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars,
         bottomBar = {
             AnimatedVisibility(
-                visible = !isImeVisible,
+                visible = showBottomBar,
                 enter = slideInVertically { it } + fadeIn(),
                 exit = slideOutVertically { it } + fadeOut()
             ) {
@@ -110,9 +122,9 @@ fun RegexLabApp(viewModel: MainViewModel) {
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Teal600,
-                                selectedTextColor = Teal600,
-                                indicatorColor = Teal100,
+                                selectedIconColor = activeTheme.primaryColor,
+                                selectedTextColor = activeTheme.primaryColor,
+                                indicatorColor = activeTheme.primaryContainer,
                                 unselectedIconColor = Slate600,
                                 unselectedTextColor = Slate600
                             )
@@ -127,7 +139,7 @@ fun RegexLabApp(viewModel: MainViewModel) {
                 .fillMaxSize()
                 .padding(
                     top = innerPadding.calculateTopPadding(),
-                    bottom = if (isImeVisible) 0.dp else innerPadding.calculateBottomPadding()
+                    bottom = if (showBottomBar) innerPadding.calculateBottomPadding() else 0.dp
                 )
         ) {
             when (selectedTab) {

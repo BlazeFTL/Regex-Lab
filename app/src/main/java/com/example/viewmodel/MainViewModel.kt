@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.AppDatabase
 import com.example.data.RegexRepository
 import com.example.data.SavedPatternEntity
+import com.example.model.AppSettings
+import com.example.model.AppThemeData
 import com.example.model.CaptureGroup
 import com.example.model.MatchResultItem
 import com.example.model.PrebuiltPattern
@@ -57,6 +59,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val showHint: StateFlow<Boolean> = _showHint.asStateFlow()
 
     private val prefs = application.getSharedPreferences("regex_lab_prefs", Context.MODE_PRIVATE)
+
+    private val _appSettings = MutableStateFlow(loadSettingsFromPrefs())
+    val appSettings: StateFlow<AppSettings> = _appSettings.asStateFlow()
+
+    private fun loadSettingsFromPrefs(): AppSettings {
+        return AppSettings(
+            themeId = prefs.getString("theme_id", "teal") ?: "teal",
+            hideCheatSheet = prefs.getBoolean("hide_cheat_sheet", false),
+            hideTutorials = prefs.getBoolean("hide_tutorials", false),
+            hideSaved = prefs.getBoolean("hide_saved", false),
+            hideAllBottomBar = prefs.getBoolean("hide_all_bottom_bar", false),
+            hideSaveButton = prefs.getBoolean("hide_save_button", false)
+        )
+    }
+
+    fun updateTheme(themeId: String) {
+        prefs.edit().putString("theme_id", themeId).apply()
+        _appSettings.value = _appSettings.value.copy(themeId = themeId)
+    }
+
+    fun updateHideCheatSheet(hide: Boolean) {
+        prefs.edit().putBoolean("hide_cheat_sheet", hide).apply()
+        _appSettings.value = _appSettings.value.copy(hideCheatSheet = hide)
+    }
+
+    fun updateHideTutorials(hide: Boolean) {
+        prefs.edit().putBoolean("hide_tutorials", hide).apply()
+        _appSettings.value = _appSettings.value.copy(hideTutorials = hide)
+    }
+
+    fun updateHideSaved(hide: Boolean) {
+        prefs.edit().putBoolean("hide_saved", hide).apply()
+        _appSettings.value = _appSettings.value.copy(hideSaved = hide)
+    }
+
+    fun updateHideAllBottomBar(hide: Boolean) {
+        prefs.edit().putBoolean("hide_all_bottom_bar", hide).apply()
+        _appSettings.value = _appSettings.value.copy(hideAllBottomBar = hide)
+    }
+
+    fun updateHideSaveButton(hide: Boolean) {
+        prefs.edit().putBoolean("hide_save_button", hide).apply()
+        _appSettings.value = _appSettings.value.copy(hideSaveButton = hide)
+    }
 
     init {
         val dao = AppDatabase.getDatabase(application).regexDao()
