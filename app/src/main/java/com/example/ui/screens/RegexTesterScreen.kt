@@ -204,8 +204,7 @@ fun RegexTesterScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Slate50)
-            .imePadding()
-            .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 12.dp),
+            .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 4.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // 1. TOP HEADER WITH TITLE AND HISTORY/SAVE ACTIONS
