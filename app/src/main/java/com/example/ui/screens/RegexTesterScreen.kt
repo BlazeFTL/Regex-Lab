@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,9 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.ErrorOutline
@@ -49,7 +49,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -63,6 +62,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -93,42 +93,95 @@ import com.example.ui.theme.Teal600
 import com.example.viewmodel.MainViewModel
 
 /**
- * VisualTransformation that dynamically highlights regex matches inside the editable text input box.
+ * VisualTransformation that dynamically highlights regex matches and forces character-level line breaks.
  */
 class RegexHighlightTransformation(
     private val matches: List<MatchResultItem>,
     private val selectedMatchIndex: Int?
 ) : VisualTransformation {
     override fun filter(text: androidx.compose.ui.text.AnnotatedString): TransformedText {
-        if (text.isEmpty() || matches.isEmpty()) {
+        if (text.isEmpty()) {
             return TransformedText(text, OffsetMapping.Identity)
         }
 
+        val builder = StringBuilder()
+        for (i in 0 until text.length) {
+            builder.append(text.text[i])
+            builder.append('\u200B')
+        }
+
         val annotatedString = buildAnnotatedString {
-            append(text.text)
+            append(builder.toString())
 
-            matches.forEach { matchItem ->
-                val start = matchItem.range.first.coerceIn(0, text.length)
-                val end = (matchItem.range.last + 1).coerceIn(0, text.length)
+            if (matches.isNotEmpty()) {
+                matches.forEach { matchItem ->
+                    val origStart = matchItem.range.first.coerceIn(0, text.length)
+                    val origEnd = (matchItem.range.last + 1).coerceIn(0, text.length)
 
-                if (start < end) {
-                    val colorIndex = matchItem.matchIndex % MatchHighlights.size
-                    val colorPair = MatchHighlights[colorIndex]
-                    val isSelected = selectedMatchIndex == matchItem.matchIndex
+                    if (origStart < origEnd) {
+                        val transStart = (origStart * 2).coerceIn(0, builder.length)
+                        val transEnd = (origEnd * 2).coerceIn(0, builder.length)
 
-                    addStyle(
-                        style = SpanStyle(
-                            background = if (isSelected) colorPair.border else colorPair.bg,
-                            color = colorPair.text,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        start = start,
-                        end = end
-                    )
+                        val colorIndex = matchItem.matchIndex % MatchHighlights.size
+                        val colorPair = MatchHighlights[colorIndex]
+                        val isSelected = selectedMatchIndex == matchItem.matchIndex
+
+                        addStyle(
+                            style = SpanStyle(
+                                background = if (isSelected) colorPair.border else colorPair.bg,
+                                color = colorPair.text,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            start = transStart,
+                            end = transEnd
+                        )
+                    }
                 }
             }
         }
-        return TransformedText(annotatedString, OffsetMapping.Identity)
+
+        val mapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                return (offset * 2).coerceIn(0, annotatedString.length)
+            }
+            override fun transformedToOriginal(offset: Int): Int {
+                return (offset / 2).coerceIn(0, text.length)
+            }
+        }
+
+        return TransformedText(annotatedString, mapping)
+    }
+}
+
+/**
+ * VisualTransformation that forces character-level line breaking for expression inputs.
+ */
+object CharBreakTransformation : VisualTransformation {
+    override fun filter(text: androidx.compose.ui.text.AnnotatedString): TransformedText {
+        if (text.isEmpty()) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
+        val builder = StringBuilder()
+        for (i in 0 until text.length) {
+            builder.append(text.text[i])
+            builder.append('\u200B')
+        }
+
+        val annotatedString = buildAnnotatedString {
+            append(builder.toString())
+        }
+
+        val mapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                return (offset * 2).coerceIn(0, annotatedString.length)
+            }
+            override fun transformedToOriginal(offset: Int): Int {
+                return (offset / 2).coerceIn(0, text.length)
+            }
+        }
+
+        return TransformedText(annotatedString, mapping)
     }
 }
 
@@ -145,12 +198,15 @@ fun RegexTesterScreen(
     var showHistorySheet by remember { mutableStateOf(false) }
     var showFlagsMenu by remember { mutableStateOf(false) }
 
+    val outerScrollState = rememberScrollState()
     val testTextScrollState = rememberScrollState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Slate50)
+            .imePadding()
+            .verticalScroll(outerScrollState)
             .padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -162,7 +218,7 @@ fun RegexTesterScreen(
         ) {
             Column {
                 Text(
-                    text = "Regex Lab Tester",
+                    text = "Regex Lab",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Slate900
@@ -210,11 +266,11 @@ fun RegexTesterScreen(
             }
         }
 
-        // 2. TEXT INPUT BOX - TAKES MAJORITY OF THE SCREEN WITH MAXIMUM SPACE
+        // 2. TEXT INPUT BOX - TAKES MAXIMUM SPACE AND SCROLLS WITH KEYBOARD
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .heightIn(min = 280.dp, max = 500.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             shape = RoundedCornerShape(14.dp)
@@ -260,7 +316,7 @@ fun RegexTesterScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
 
-                        // CLEAR BUTTON - RIGHT SIDE OF CHARS COUNT
+                        // CLEAR BUTTON
                         if (state.testString.isNotEmpty()) {
                             IconButton(
                                 onClick = { viewModel.updateTestString("") },
@@ -283,7 +339,7 @@ fun RegexTesterScreen(
                     RegexHighlightTransformation(state.matches, null)
                 }
 
-                // Main Editable Text Area using full card space without inner border, with centered placeholder and vertical scroll
+                // Main Editable Text Area using full card space with character-level line breaks
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -313,7 +369,12 @@ fun RegexTesterScreen(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 14.sp,
                             lineHeight = 22.sp,
-                            color = Slate900
+                            color = Slate900,
+                            lineBreak = LineBreak(
+                                strategy = LineBreak.Strategy.Simple,
+                                strictness = LineBreak.Strictness.Strict,
+                                wordBreak = LineBreak.WordBreak.Default
+                            )
                         ),
                         cursorBrush = SolidColor(Teal600)
                     )
@@ -386,7 +447,7 @@ fun RegexTesterScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // REGEX PATTERN INPUT FIELD (Inline layout using full width, wrapping text only at end of line)
+                // REGEX PATTERN INPUT FIELD (Character-level line breaking, full width utilization)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -404,6 +465,7 @@ fun RegexTesterScreen(
                         value = state.pattern,
                         onValueChange = { viewModel.updatePattern(it) },
                         modifier = Modifier.weight(1f),
+                        visualTransformation = CharBreakTransformation,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 14.sp,
@@ -412,7 +474,7 @@ fun RegexTesterScreen(
                             lineHeight = 20.sp,
                             lineBreak = LineBreak(
                                 strategy = LineBreak.Strategy.Simple,
-                                strictness = LineBreak.Strictness.Loose,
+                                strictness = LineBreak.Strictness.Strict,
                                 wordBreak = LineBreak.WordBreak.Default
                             )
                         ),
@@ -571,7 +633,7 @@ fun RegexTesterScreen(
                             ),
                             placeholder = { Text("e.g. [REPLACED: $0]") },
                             shape = RoundedCornerShape(10.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Indigo600,
                                 unfocusedBorderColor = Slate200,
                                 focusedContainerColor = Slate50,

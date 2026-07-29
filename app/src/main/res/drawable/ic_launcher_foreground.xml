@@ -3,6 +3,6 @@
     <item
         android:width="66dp"
         android:height="66dp"
-        android:drawable="@drawable/img_app_icon_1785268711483"
+        android:drawable="@drawable/regex_lab_icon_1785317414366"
         android:gravity="center" />
 </layer-list>

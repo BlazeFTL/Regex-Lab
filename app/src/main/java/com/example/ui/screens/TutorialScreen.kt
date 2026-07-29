@@ -520,12 +520,15 @@ fun TutorialScreen(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 repeat(TutorialData.lessons.size) { i ->
                     val isCurrent = pagerState.currentPage == i
                     Box(
                         modifier = Modifier
-                            .size(if (isCurrent) 10.dp else 6.dp)
+                            .size(if (isCurrent) 8.dp else 6.dp)
                             .clip(CircleShape)
                             .background(if (isCurrent) Teal600 else Slate300)
                     )
