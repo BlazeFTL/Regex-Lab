@@ -218,6 +218,7 @@ fun RegexTesterScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Slate50)
+            .imePadding()
     ) {
         Column(
             modifier = Modifier
