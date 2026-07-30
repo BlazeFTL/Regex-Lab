@@ -30,6 +30,15 @@ A mobile-first regex tester and learning tool. Build, test, and debug regular ex
 - Toggle visibility of the top action bar Save button
 
 ## Screenshots
+<img width="702" height="1560" alt="Screenshot_20260730-165514_Spark Launcher" src="https://github.com/user-attachments/assets/a45b7f9d-4a8f-4594-a765-6634e4d81c76" />
+<img width="702" height="1560" alt="Screenshot_20260730-165517_Spark Launcher" src="https://github.com/user-attachments/assets/af58b0f3-cd2f-4d52-9729-45f5e1b0ea65" />
+<img width="702" height="1560" alt="Screenshot_20260730-165521_Spark Launcher" src="https://github.com/user-attachments/assets/d0cab4a3-6a9b-4880-bcba-0068ef10aab7" />
+<img width="702" height="1560" alt="Screenshot_20260730-165523_Spark Launcher" src="https://github.com/user-attachments/assets/d94774ff-c325-4bbc-a493-1d4cf9bbd123" />
+<img width="702" height="1560" alt="Screenshot_20260730-165532_Spark Launcher" src="https://github.com/user-attachments/assets/003a368e-f63f-41a9-ad75-7d6ba84a05fb" />
+<img width="702" height="1560" alt="Screenshot_20260730-165536_Spark Launcher" src="https://github.com/user-attachments/assets/d83bc9d5-6e4c-4a8c-97bb-065ebaf3ffa8" />
+<img width="702" height="1560" alt="Screenshot_20260730-165539_Spark Launcher" src="https://github.com/user-attachments/assets/bf9fa65c-e643-4e1f-86f6-1c4ec289307e" />
+
+
 
 | Tester | Settings | Tutorials |
 |---|---|---|
