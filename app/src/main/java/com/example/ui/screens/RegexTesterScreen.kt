@@ -329,7 +329,7 @@ fun RegexTesterScreen(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
-                            tint = Slate800,
+                            tint = activeTheme.primaryColor,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -1136,7 +1136,7 @@ fun RegexTesterScreen(
                         Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = null,
-                            tint = Teal600
+                            tint = activeTheme.primaryColor
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -1216,7 +1216,7 @@ fun RegexTesterScreen(
                                             text = entity.title,
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold,
-                                            color = Teal600
+                                            color = activeTheme.primaryColor
                                         )
                                         Text(
                                             text = entity.category,
@@ -1306,7 +1306,7 @@ fun RegexTesterScreen(
                         viewModel.saveCurrentPattern(finalTitle, "Saved")
                         showSaveDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Teal600)
+                    colors = ButtonDefaults.buttonColors(containerColor = activeTheme.primaryColor)
                 ) {
                     Text("Save")
                 }

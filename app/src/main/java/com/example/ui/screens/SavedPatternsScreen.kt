@@ -47,18 +47,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.Indigo100
-import com.example.ui.theme.Indigo50
-import com.example.ui.theme.Indigo600
+import com.example.model.AppThemeData
 import com.example.ui.theme.Rose500
 import com.example.ui.theme.Slate100
 import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
-import com.example.ui.theme.Teal100
-import com.example.ui.theme.Teal50
-import com.example.ui.theme.Teal600
 import com.example.viewmodel.MainViewModel
 
 @Composable
@@ -66,6 +61,9 @@ fun SavedPatternsScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
+    val settings by viewModel.appSettings.collectAsState()
+    val activeTheme = remember(settings.themeId) { AppThemeData.getThemeById(settings.themeId) }
+
     val allSavedList by viewModel.savedPatterns.collectAsState()
     val savedList = remember(allSavedList) { allSavedList.filter { it.category != "History" } }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
@@ -116,7 +114,7 @@ fun SavedPatternsScreen(
                                 onClick = { selectedCategory = null },
                                 label = { Text("All (${savedList.size})") },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Teal600,
+                                    selectedContainerColor = activeTheme.primaryColor,
                                     selectedLabelColor = Color.White,
                                     containerColor = Color.White,
                                     labelColor = Slate800
@@ -132,7 +130,7 @@ fun SavedPatternsScreen(
                                 onClick = { selectedCategory = if (isSelected) null else cat },
                                 label = { Text(cat) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Teal600,
+                                    selectedContainerColor = activeTheme.primaryColor,
                                     selectedLabelColor = Color.White,
                                     containerColor = Color.White,
                                     labelColor = Slate800
@@ -209,13 +207,13 @@ fun SavedPatternsScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Teal100)
+                                    .background(activeTheme.primaryContainer)
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = patternEntity.category,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Teal600,
+                                    color = activeTheme.primaryColor,
                                     fontSize = 10.sp
                                 )
                             }
@@ -291,7 +289,7 @@ fun SavedPatternsScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Indigo600)
+                                    .background(activeTheme.primaryColor)
                                     .clickable {
                                         viewModel.loadCustomPattern(
                                             title = patternEntity.title,

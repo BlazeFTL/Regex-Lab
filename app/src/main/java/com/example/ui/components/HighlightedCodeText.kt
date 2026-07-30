@@ -109,14 +109,14 @@ fun HighlightedCodeText(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (matches.isNotEmpty()) Teal600 else Slate300)
+                            .background(if (matches.isNotEmpty()) MaterialTheme.colorScheme.primary else Slate300)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "${matches.size} match${if (matches.size != 1) "es" else ""}",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (matches.isNotEmpty()) Teal600 else Slate600
+                        color = if (matches.isNotEmpty()) MaterialTheme.colorScheme.primary else Slate600
                     )
                 }
             }

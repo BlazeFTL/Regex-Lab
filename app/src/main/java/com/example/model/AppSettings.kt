@@ -130,12 +130,12 @@ object AppThemeData {
     val AllThemes = StaticThemes + MixedThemes
 
     fun getThemeById(id: String): AppTheme {
-        return AllThemes.firstOrNull { it.id == id } ?: StaticThemes[0]
+        return AllThemes.firstOrNull { it.id == id } ?: MixedThemes.first { it.id == "gradient_indigo_purple" }
     }
 }
 
 data class AppSettings(
-    val themeId: String = "teal",
+    val themeId: String = "gradient_indigo_purple",
     val hideCheatSheet: Boolean = false,
     val hideTutorials: Boolean = false,
     val hideSaved: Boolean = false,

@@ -54,14 +54,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.model.AppThemeData
 import com.example.model.MatchResultItem
 import com.example.model.TutorialData
 import com.example.ui.components.HighlightedCodeText
 import com.example.ui.theme.Amber500
 import com.example.ui.theme.Emerald500
-import com.example.ui.theme.Indigo100
-import com.example.ui.theme.Indigo50
-import com.example.ui.theme.Indigo600
 import com.example.ui.theme.Rose500
 import com.example.ui.theme.Slate100
 import com.example.ui.theme.Slate200
@@ -70,9 +68,6 @@ import com.example.ui.theme.Slate50
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
-import com.example.ui.theme.Teal100
-import com.example.ui.theme.Teal50
-import com.example.ui.theme.Teal600
 import com.example.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -81,6 +76,9 @@ fun TutorialScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
+    val settings by viewModel.appSettings.collectAsState()
+    val activeTheme = remember(settings.themeId) { AppThemeData.getThemeById(settings.themeId) }
+
     val activeIndex by viewModel.activeTutorialIndex.collectAsState()
     val userPattern by viewModel.tutorialInputPattern.collectAsState()
     val showHint by viewModel.showHint.collectAsState()
@@ -134,7 +132,7 @@ fun TutorialScreen(
                         Icon(
                             imageVector = Icons.Default.School,
                             contentDescription = "Tutorial",
-                            tint = Teal600,
+                            tint = activeTheme.primaryColor,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -149,14 +147,14 @@ fun TutorialScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Teal100)
+                            .background(activeTheme.primaryContainer)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = "${completedIds.size}/${TutorialData.lessons.size} Solved",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Teal600
+                            color = activeTheme.primaryColor
                         )
                     }
                 }
@@ -169,7 +167,7 @@ fun TutorialScreen(
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp)),
-                    color = Teal600,
+                    color = activeTheme.primaryColor,
                     trackColor = Slate200
                 )
             }
@@ -297,8 +295,8 @@ fun TutorialScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(Indigo50)
-                                    .border(1.dp, Indigo100, RoundedCornerShape(10.dp))
+                                    .background(activeTheme.primaryContainer.copy(alpha = 0.35f))
+                                    .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(10.dp))
                                     .padding(10.dp)
                             ) {
                                 Column {
@@ -306,7 +304,7 @@ fun TutorialScreen(
                                         text = "🎯 YOUR OBJECTIVE:",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
-                                        color = Indigo600,
+                                        color = activeTheme.primaryColor,
                                         letterSpacing = 1.sp
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
@@ -372,7 +370,7 @@ fun TutorialScreen(
                                         "/",
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
-                                        color = Teal600,
+                                        color = activeTheme.primaryColor,
                                         modifier = Modifier.padding(start = 12.dp)
                                     )
                                 },
@@ -381,13 +379,13 @@ fun TutorialScreen(
                                         "/" + lesson.defaultFlags,
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
-                                        color = Indigo600,
+                                        color = activeTheme.primaryColor,
                                         modifier = Modifier.padding(end = 12.dp)
                                     )
                                 },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = if (isPassed) Emerald500 else Teal600,
+                                    focusedBorderColor = if (isPassed) Emerald500 else activeTheme.primaryColor,
                                     unfocusedBorderColor = Slate200,
                                     focusedContainerColor = Slate50,
                                     unfocusedContainerColor = Slate50
@@ -530,7 +528,7 @@ fun TutorialScreen(
                         modifier = Modifier
                             .size(if (isCurrent) 8.dp else 6.dp)
                             .clip(CircleShape)
-                            .background(if (isCurrent) Teal600 else Slate300)
+                            .background(if (isCurrent) activeTheme.primaryColor else Slate300)
                     )
                 }
             }

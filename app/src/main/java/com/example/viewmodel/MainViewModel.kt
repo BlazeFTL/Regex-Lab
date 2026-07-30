@@ -65,7 +65,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadSettingsFromPrefs(): AppSettings {
         return AppSettings(
-            themeId = prefs.getString("theme_id", "teal") ?: "teal",
+            themeId = prefs.getString("theme_id", "gradient_indigo_purple") ?: "gradient_indigo_purple",
             hideCheatSheet = prefs.getBoolean("hide_cheat_sheet", false),
             hideTutorials = prefs.getBoolean("hide_tutorials", false),
             hideSaved = prefs.getBoolean("hide_saved", false),

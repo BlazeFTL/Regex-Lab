@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,20 +54,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.model.AppThemeData
 import com.example.model.CheatCategory
 import com.example.model.CheatSheetData
 import com.example.model.PrebuiltPattern
-import com.example.ui.theme.Indigo100
-import com.example.ui.theme.Indigo50
-import com.example.ui.theme.Indigo600
 import com.example.ui.theme.Slate100
 import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
-import com.example.ui.theme.Teal100
-import com.example.ui.theme.Teal50
-import com.example.ui.theme.Teal600
 import com.example.viewmodel.MainViewModel
 
 @Composable
@@ -74,6 +70,9 @@ fun CheatSheetScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
+    val settings by viewModel.appSettings.collectAsState()
+    val activeTheme = remember(settings.themeId) { AppThemeData.getThemeById(settings.themeId) }
+
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<CheatCategory?>(null) }
     val clipboardManager = LocalClipboardManager.current
@@ -125,7 +124,7 @@ fun CheatSheetScreen(
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Teal600,
+                        focusedBorderColor = activeTheme.primaryColor,
                         unfocusedBorderColor = Slate200,
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White
@@ -150,8 +149,8 @@ fun CheatSheetScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Teal50)
-                                    .border(1.dp, Teal100, RoundedCornerShape(8.dp))
+                                    .background(activeTheme.primaryContainer)
+                                    .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(8.dp))
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Text(
@@ -159,7 +158,7 @@ fun CheatSheetScreen(
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Teal600
+                                    color = activeTheme.primaryColor
                                 )
                             }
 
@@ -213,7 +212,7 @@ fun CheatSheetScreen(
                                     Icon(
                                         imageVector = Icons.Default.PlayArrow,
                                         contentDescription = "Try in Tester",
-                                        tint = Indigo600,
+                                        tint = activeTheme.primaryColor,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -236,15 +235,15 @@ fun CheatSheetScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Indigo50)
-                                .border(1.dp, Indigo100, RoundedCornerShape(8.dp))
+                                .background(activeTheme.primaryContainer.copy(alpha = 0.35f))
+                                .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(8.dp))
                                 .padding(10.dp)
                         ) {
                             Column {
                                 Text(
                                     text = "Example Usage:",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Indigo600,
+                                    color = activeTheme.primaryColor,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
