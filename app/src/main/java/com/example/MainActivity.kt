@@ -141,6 +141,9 @@ fun RegexLabApp(viewModel: MainViewModel) {
                     top = innerPadding.calculateTopPadding(),
                     bottom = if (showBottomBar) innerPadding.calculateBottomPadding() else 0.dp
                 )
+                .windowInsetsPadding(
+                    if (!showBottomBar) WindowInsets.navigationBars else WindowInsets(0, 0, 0, 0)
+                )
         ) {
             when (selectedTab) {
                 0 -> RegexTesterScreen(viewModel = viewModel)
