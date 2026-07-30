@@ -25,7 +25,12 @@ jobs:
 
       - name: Patch build.gradle.kts
         run: |
-          sed -i 's/debug { signingConfig = signingConfigs.getByName("debugConfig") }/debug {\n      isCrunchPngs = true\n      isMinifyEnabled = true\n      isShrinkResources = true\n      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")\n      signingConfig = signingConfigs.getByName("debugConfig")\n    }/' app/build.gradle.kts
+          sed -i '/signingConfig = signingConfigs.getByName("debugConfig")/i\
+            isCrunchPngs = true\
+            isMinifyEnabled = true\
+            isShrinkResources = true\
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")' app/build.gradle.kts
+          sed -i '/signingConfig = signingConfigs.getByName("debugConfig")/d' app/build.gradle.kts
      
       - name: Ensure proguard-rules.pro exists
         run: touch app/proguard-rules.pro
