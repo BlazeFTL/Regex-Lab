@@ -286,569 +286,827 @@ fun RegexTesterScreen(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // HISTORY BUTTON (Sleek Compact Circle)
+                    // HISTORY BUTTON (Transparent Background)
                     IconButton(
                         onClick = {
                             viewModel.commitCurrentSessionToHistory()
                             showHistorySheet = true
                         },
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(activeTheme.primaryContainer.copy(alpha = 0.4f))
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = "Evaluation History",
                             tint = activeTheme.primaryColor,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
                     if (!settings.hideSaveButton) {
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
 
-                        // SAVE BUTTON (Sleek Compact Circle)
+                        // SAVE BUTTON (Transparent Background)
                         IconButton(
                             onClick = { showSaveDialog = true },
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(activeTheme.primaryContainer.copy(alpha = 0.4f))
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Save,
                                 contentDescription = "Save Pattern",
                                 tint = activeTheme.primaryColor,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
-                    // SETTINGS BUTTON (Sleek Compact Circle)
+                    // SETTINGS BUTTON (Transparent Background)
                     IconButton(
                         onClick = { showSettingsSheet = true },
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(Slate100)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
                             tint = Slate800,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
             }
 
-            // 2. MAIN TEST TEXT INPUT CARD
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Column(
+            if (!state.isReplaceMode) {
+                // === NORMAL MODE: TEST TEXT INPUT CARD (Takes Full Available Screen Height) ===
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp)
+                        .fillMaxWidth()
+                        .weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    // Header row inside Text Card with Match Traverse Up/Down Controls
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(12.dp)
                     ) {
-                        Text(
-                            text = "TEST TEXT INPUT",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Slate600,
-                            letterSpacing = 1.sp
-                        )
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(if (state.matches.isNotEmpty()) activeTheme.primaryColor else Slate300)
+                        // Header row inside Text Card with Match Traverse Up/Down Controls
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "TEST TEXT INPUT",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Slate600,
+                                letterSpacing = 1.sp
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
 
-                            if (state.matches.isNotEmpty()) {
-                                // PREVIOUS MATCH BUTTON (UP)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(if (state.matches.isNotEmpty()) activeTheme.primaryColor else Slate300)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                if (state.matches.isNotEmpty()) {
+                                    // PREVIOUS MATCH BUTTON (UP)
+                                    IconButton(
+                                        onClick = {
+                                            if (state.matches.isNotEmpty()) {
+                                                selectedMatchIndex = if (selectedMatchIndex > 0) selectedMatchIndex - 1 else state.matches.size - 1
+                                            }
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowUp,
+                                            contentDescription = "Previous Match",
+                                            tint = activeTheme.primaryColor,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "${selectedMatchIndex + 1}/${state.matches.size}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = activeTheme.primaryColor
+                                    )
+
+                                    // NEXT MATCH BUTTON (DOWN)
+                                    IconButton(
+                                        onClick = {
+                                            if (state.matches.isNotEmpty()) {
+                                                selectedMatchIndex = (selectedMatchIndex + 1) % state.matches.size
+                                            }
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowDown,
+                                            contentDescription = "Next Match",
+                                            tint = activeTheme.primaryColor,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = "0 matches",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Slate600
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "(${state.testString.length} chars)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Slate600
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                // CLEAR BUTTON
+                                if (state.testString.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { viewModel.clearTestString() },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear Text",
+                                            tint = Slate600,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        val transformation = remember(state.matches, selectedMatchIndex) {
+                            RegexHighlightTransformation(state.matches, selectedMatchIndex)
+                        }
+
+                        // Main Editable Text Area taking full available space in Card
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    testTextFocusRequester.requestFocus()
+                                    keyboardController?.show()
+                                }
+                                .verticalScroll(testTextScrollState)
+                        ) {
+                            if (state.testString.isEmpty()) {
+                                Text(
+                                    text = "Paste Or Type Here...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Slate300,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 13.sp,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+
+                            BasicTextField(
+                                value = state.testString,
+                                onValueChange = { viewModel.updateTestString(it) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(testTextFocusRequester),
+                                visualTransformation = transformation,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp,
+                                    lineHeight = 22.sp,
+                                    color = Slate900,
+                                    lineBreak = LineBreak(
+                                        strategy = LineBreak.Strategy.Simple,
+                                        strictness = LineBreak.Strictness.Strict,
+                                        wordBreak = LineBreak.WordBreak.Default
+                                    )
+                                ),
+                                cursorBrush = SolidColor(activeTheme.primaryColor)
+                            )
+                        }
+                    }
+                }
+
+                // REGEX EXPRESSION PATTERN CARD (Bottom Standalone Card)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            regexPatternFocusRequester.requestFocus()
+                            keyboardController?.show()
+                        },
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.5.dp, activeTheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "EXPRESSION PATTERN",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Slate600,
+                                letterSpacing = 1.sp
+                            )
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                FilterChip(
+                                    selected = state.isReplaceMode,
+                                    onClick = { viewModel.toggleReplaceMode(!state.isReplaceMode) },
+                                    label = { Text("Replace Mode", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.FindReplace,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = activeTheme.primaryColor,
+                                        selectedLabelColor = Color.White,
+                                        selectedLeadingIconColor = Color.White,
+                                        containerColor = Slate100,
+                                        labelColor = Slate900
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
                                 IconButton(
                                     onClick = {
-                                        if (state.matches.isNotEmpty()) {
-                                            selectedMatchIndex = if (selectedMatchIndex > 0) selectedMatchIndex - 1 else state.matches.size - 1
+                                        val flagsStr = state.flags.map { it.code }.joinToString("")
+                                        val textToCopy = if (state.pattern.isEmpty()) "" else "/${state.pattern}/$flagsStr"
+                                        if (textToCopy.isNotEmpty()) {
+                                            clipboardManager.setText(AnnotatedString(textToCopy))
+                                            Toast.makeText(context, "Regex pattern copied: $textToCopy", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Pattern is empty", Toast.LENGTH_SHORT).show()
                                         }
                                     },
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(28.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.KeyboardArrowUp,
-                                        contentDescription = "Previous Match",
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copy Regex Pattern",
                                         tint = activeTheme.primaryColor,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
 
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                if (state.pattern.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { viewModel.clearPattern() },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear Pattern",
+                                            tint = Slate600,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "/",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = activeTheme.primaryColor,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+
+                            BasicTextField(
+                                value = state.pattern,
+                                onValueChange = { viewModel.updatePattern(it) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(regexPatternFocusRequester),
+                                visualTransformation = CharBreakTransformation,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Slate900,
+                                    lineHeight = 20.sp,
+                                    lineBreak = LineBreak(
+                                        strategy = LineBreak.Strategy.Simple,
+                                        strictness = LineBreak.Strictness.Strict,
+                                        wordBreak = LineBreak.WordBreak.Default
+                                    )
+                                ),
+                                cursorBrush = SolidColor(activeTheme.primaryColor),
+                                decorationBox = { innerTextField ->
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(10.dp))
+                                            .background(Slate50, RoundedCornerShape(10.dp))
+                                            .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    ) {
+                                        if (state.pattern.isEmpty()) {
+                                            Text(
+                                                "Enter expression...",
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 14.sp,
+                                                color = Slate300
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 4.dp)
+                            ) {
+                                val activeFlagsStr = state.flags.map { it.code }.joinToString("")
                                 Text(
-                                    text = "${selectedMatchIndex + 1}/${state.matches.size}",
-                                    style = MaterialTheme.typography.labelSmall,
+                                    "/" + activeFlagsStr,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = activeTheme.primaryColor
                                 )
 
-                                // NEXT MATCH BUTTON (DOWN)
-                                IconButton(
-                                    onClick = {
-                                        if (state.matches.isNotEmpty()) {
-                                            selectedMatchIndex = (selectedMatchIndex + 1) % state.matches.size
-                                        }
-                                    },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "Next Match",
-                                        tint = activeTheme.primaryColor,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            } else {
-                                Text(
-                                    text = "0 matches",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Slate600
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "(${state.testString.length} chars)",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Slate600
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            // CLEAR BUTTON
-                            if (state.testString.isNotEmpty()) {
-                                IconButton(
-                                    onClick = { viewModel.clearTestString() },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear Text",
-                                        tint = Slate600,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    val transformation = remember(state.matches, selectedMatchIndex) {
-                        RegexHighlightTransformation(state.matches, selectedMatchIndex)
-                    }
-
-                    // Main Editable Text Area taking full available space in Card
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                testTextFocusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
-                            .verticalScroll(testTextScrollState)
-                    ) {
-                        if (state.testString.isEmpty()) {
-                            Text(
-                                text = "Paste Or Type Here...",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Slate300,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 13.sp,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
-                        }
-
-                        BasicTextField(
-                            value = state.testString,
-                            onValueChange = { viewModel.updateTestString(it) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(testTextFocusRequester),
-                            visualTransformation = transformation,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 14.sp,
-                                lineHeight = 22.sp,
-                                color = Slate900,
-                                lineBreak = LineBreak(
-                                    strategy = LineBreak.Strategy.Simple,
-                                    strictness = LineBreak.Strictness.Strict,
-                                    wordBreak = LineBreak.WordBreak.Default
-                                )
-                            ),
-                            cursorBrush = SolidColor(activeTheme.primaryColor)
-                        )
-                    }
-                }
-            }
-
-            // 3. REGEX EXPRESSION PATTERN CARD (Dedicated Standalone Card)
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        regexPatternFocusRequester.requestFocus()
-                        keyboardController?.show()
-                    },
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(1.5.dp, activeTheme.primaryContainer)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "EXPRESSION PATTERN",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Slate600,
-                            letterSpacing = 1.sp
-                        )
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            // REPLACE MODE CHIP TOGGLE
-                            FilterChip(
-                                selected = state.isReplaceMode,
-                                onClick = { viewModel.toggleReplaceMode(!state.isReplaceMode) },
-                                label = { Text(if (state.isReplaceMode) "Replace ON" else "Replace Mode", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.FindReplace,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = activeTheme.primaryColor,
-                                    selectedLabelColor = Color.White,
-                                    selectedLeadingIconColor = Color.White,
-                                    containerColor = Slate100,
-                                    labelColor = Slate900
-                                ),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            // COPY REGEX PATTERN BUTTON
-                            IconButton(
-                                onClick = {
-                                    val flagsStr = state.flags.map { it.code }.joinToString("")
-                                    val textToCopy = if (state.pattern.isEmpty()) "" else "/${state.pattern}/$flagsStr"
-                                    if (textToCopy.isNotEmpty()) {
-                                        clipboardManager.setText(AnnotatedString(textToCopy))
-                                        Toast.makeText(context, "Regex pattern copied: $textToCopy", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, "Pattern is empty", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy Regex Pattern",
-                                    tint = activeTheme.primaryColor,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                            // CLEAR PATTERN BUTTON
-                            if (state.pattern.isNotEmpty()) {
-                                IconButton(
-                                    onClick = { viewModel.clearPattern() },
-                                    modifier = Modifier.size(28.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear Pattern",
-                                        tint = Slate600,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // REGEX PATTERN INPUT FIELD
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "/",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = activeTheme.primaryColor,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-
-                        BasicTextField(
-                            value = state.pattern,
-                            onValueChange = { viewModel.updatePattern(it) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .focusRequester(regexPatternFocusRequester),
-                            visualTransformation = CharBreakTransformation,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Slate900,
-                                lineHeight = 20.sp,
-                                lineBreak = LineBreak(
-                                    strategy = LineBreak.Strategy.Simple,
-                                    strictness = LineBreak.Strictness.Strict,
-                                    wordBreak = LineBreak.WordBreak.Default
-                                )
-                            ),
-                            cursorBrush = SolidColor(activeTheme.primaryColor),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(10.dp))
-                                        .background(Slate50, RoundedCornerShape(10.dp))
-                                        .padding(horizontal = 10.dp, vertical = 8.dp)
-                                ) {
-                                    if (state.pattern.isEmpty()) {
-                                        Text(
-                                            "Enter expression...",
-                                            fontFamily = FontFamily.Monospace,
-                                            fontSize = 14.sp,
-                                            color = Slate300
+                                Box {
+                                    IconButton(
+                                        onClick = { showFlagsMenu = true },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Flag,
+                                            contentDescription = "Regex Flags",
+                                            tint = activeTheme.primaryColor,
+                                            modifier = Modifier.size(18.dp)
                                         )
                                     }
-                                    innerTextField()
-                                }
-                            }
-                        )
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(start = 4.dp)
-                        ) {
-                            val activeFlagsStr = state.flags.map { it.code }.joinToString("")
-                            Text(
-                                "/" + activeFlagsStr,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = activeTheme.primaryColor
-                            )
-
-                            // FLAG ICON BUTTON
-                            Box {
-                                IconButton(
-                                    onClick = { showFlagsMenu = true },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Flag,
-                                        contentDescription = "Regex Flags",
-                                        tint = activeTheme.primaryColor,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-
-                                // DROPDOWN POPUP FOR FLAGS
-                                DropdownMenu(
-                                    expanded = showFlagsMenu,
-                                    onDismissRequest = { showFlagsMenu = false },
-                                    modifier = Modifier.background(Color.White)
-                                ) {
-                                    Text(
-                                        text = "Regex Flags",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Slate900,
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                    )
-                                    RegexFlag.entries.forEach { flag ->
-                                        val isSelected = state.flags.contains(flag)
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable { viewModel.toggleFlag(flag) }
-                                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Checkbox(
-                                                checked = isSelected,
-                                                onCheckedChange = { viewModel.toggleFlag(flag) },
-                                                colors = CheckboxDefaults.colors(checkedColor = activeTheme.primaryColor)
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Column {
-                                                Text(
-                                                    text = "${flag.flagName} (${flag.code})",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Slate900
+                                    DropdownMenu(
+                                        expanded = showFlagsMenu,
+                                        onDismissRequest = { showFlagsMenu = false },
+                                        modifier = Modifier.background(Color.White)
+                                    ) {
+                                        Text(
+                                            text = "Regex Flags",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Slate900,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                        )
+                                        RegexFlag.entries.forEach { flag ->
+                                            val isSelected = state.flags.contains(flag)
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { viewModel.toggleFlag(flag) }
+                                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Checkbox(
+                                                    checked = isSelected,
+                                                    onCheckedChange = { viewModel.toggleFlag(flag) },
+                                                    colors = CheckboxDefaults.colors(checkedColor = activeTheme.primaryColor)
                                                 )
-                                                Text(
-                                                    text = flag.description,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = Slate600
-                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Column {
+                                                    Text(
+                                                        text = "${flag.flagName} (${flag.code})",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Slate900
+                                                    )
+                                                    Text(
+                                                        text = flag.description,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = Slate600
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    // Error Message Display
-                    AnimatedVisibility(visible = state.error != null) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                        AnimatedVisibility(visible = state.error != null) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                                shape = RoundedCornerShape(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.ErrorOutline,
-                                    contentDescription = "Error",
-                                    tint = Rose500,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = state.error ?: "",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF991B1B),
-                                    fontFamily = FontFamily.Monospace
-                                )
+                                Row(
+                                    modifier = Modifier.padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ErrorOutline,
+                                        contentDescription = "Error",
+                                        tint = Rose500,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = state.error ?: "",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF991B1B),
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
                             }
                         }
                     }
-
-                    // REPLACE / SUBSTITUTION INPUT FIELD
-                    AnimatedVisibility(visible = state.isReplaceMode) {
-                        Column(modifier = Modifier.padding(top = 10.dp)) {
+                }
+            } else {
+                // === REPLACE MODE: TOP EXPRESSION & REPLACE PATTERN CARD ===
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            regexPatternFocusRequester.requestFocus()
+                            keyboardController?.show()
+                        },
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.5.dp, activeTheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "Replace Pattern ($0 = full match, $1 = group 1):",
+                                text = "EXPRESSION PATTERN",
                                 style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = Slate600,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            OutlinedTextField(
-                                value = state.replaceString,
-                                onValueChange = { viewModel.updateReplaceString(it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                textStyle = MaterialTheme.typography.bodySmall.copy(
-                                    fontFamily = FontFamily.Monospace
-                                ),
-                                placeholder = { Text("e.g. [REPLACED: $0]") },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = activeTheme.primaryColor,
-                                    unfocusedBorderColor = Slate200,
-                                    focusedContainerColor = Slate50,
-                                    unfocusedContainerColor = Slate50
-                                ),
-                                singleLine = true
+                                letterSpacing = 1.sp
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                FilterChip(
+                                    selected = true,
+                                    onClick = { viewModel.toggleReplaceMode(false) },
+                                    label = { Text("Replace ON", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.FindReplace,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = activeTheme.primaryColor,
+                                        selectedLabelColor = Color.White,
+                                        selectedLeadingIconColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                IconButton(
+                                    onClick = {
+                                        val flagsStr = state.flags.map { it.code }.joinToString("")
+                                        val textToCopy = if (state.pattern.isEmpty()) "" else "/${state.pattern}/$flagsStr"
+                                        if (textToCopy.isNotEmpty()) {
+                                            clipboardManager.setText(AnnotatedString(textToCopy))
+                                            Toast.makeText(context, "Regex pattern copied: $textToCopy", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Pattern is empty", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copy Regex Pattern",
+                                        tint = activeTheme.primaryColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                if (state.pattern.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { viewModel.clearPattern() },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear Pattern",
+                                            tint = Slate600,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "/",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = activeTheme.primaryColor,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+
+                            BasicTextField(
+                                value = state.pattern,
+                                onValueChange = { viewModel.updatePattern(it) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(regexPatternFocusRequester),
+                                visualTransformation = CharBreakTransformation,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Slate900,
+                                    lineHeight = 20.sp,
+                                    lineBreak = LineBreak(
+                                        strategy = LineBreak.Strategy.Simple,
+                                        strictness = LineBreak.Strictness.Strict,
+                                        wordBreak = LineBreak.WordBreak.Default
+                                    )
+                                ),
+                                cursorBrush = SolidColor(activeTheme.primaryColor),
+                                decorationBox = { innerTextField ->
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(10.dp))
+                                            .background(Slate50, RoundedCornerShape(10.dp))
+                                            .padding(horizontal = 10.dp, vertical = 8.dp)
+                                    ) {
+                                        if (state.pattern.isEmpty()) {
+                                            Text(
+                                                "Enter expression...",
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 14.sp,
+                                                color = Slate300
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
 
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 4.dp)
                             ) {
+                                val activeFlagsStr = state.flags.map { it.code }.joinToString("")
                                 Text(
-                                    text = "Transformed Result Output:",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Slate600,
-                                    fontWeight = FontWeight.SemiBold
+                                    "/" + activeFlagsStr,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = activeTheme.primaryColor
                                 )
+
+                                Box {
+                                    IconButton(
+                                        onClick = { showFlagsMenu = true },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Flag,
+                                            contentDescription = "Regex Flags",
+                                            tint = activeTheme.primaryColor,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = showFlagsMenu,
+                                        onDismissRequest = { showFlagsMenu = false },
+                                        modifier = Modifier.background(Color.White)
+                                    ) {
+                                        Text(
+                                            text = "Regex Flags",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Slate900,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                        )
+                                        RegexFlag.entries.forEach { flag ->
+                                            val isSelected = state.flags.contains(flag)
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { viewModel.toggleFlag(flag) }
+                                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Checkbox(
+                                                    checked = isSelected,
+                                                    onCheckedChange = { viewModel.toggleFlag(flag) },
+                                                    colors = CheckboxDefaults.colors(checkedColor = activeTheme.primaryColor)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Column {
+                                                    Text(
+                                                        text = "${flag.flagName} (${flag.code})",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Slate900
+                                                    )
+                                                    Text(
+                                                        text = flag.description,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = Slate600
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        AnimatedVisibility(visible = state.error != null) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ErrorOutline,
+                                        contentDescription = "Error",
+                                        tint = Rose500,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = state.error ?: "",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF991B1B),
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "Replace Pattern ($0 = full match, $1 = group 1):",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Slate600,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        OutlinedTextField(
+                            value = state.replaceString,
+                            onValueChange = { viewModel.updateReplaceString(it) },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = FontFamily.Monospace
+                            ),
+                            placeholder = { Text("e.g. [REPLACED: $0]") },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = activeTheme.primaryColor,
+                                unfocusedBorderColor = Slate200,
+                                focusedContainerColor = Slate50,
+                                unfocusedContainerColor = Slate50
+                            ),
+                            singleLine = true
+                        )
+                    }
+                }
+
+                // TRANSFORMED RESULT OUTPUT CARD (Takes Full Remaining Screen Height)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "TRANSFORMED RESULT OUTPUT",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Slate600,
+                                letterSpacing = 1.sp
+                            )
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "(${state.replaceOutput.length} chars)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Slate600
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
                                 if (state.replaceOutput.isNotEmpty()) {
                                     IconButton(
                                         onClick = {
                                             clipboardManager.setText(AnnotatedString(state.replaceOutput))
                                             Toast.makeText(context, "Transformed text copied", Toast.LENGTH_SHORT).show()
                                         },
-                                        modifier = Modifier.size(22.dp)
+                                        modifier = Modifier.size(24.dp)
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.ContentCopy,
                                             contentDescription = "Copy Transformed Result",
                                             tint = activeTheme.primaryColor,
-                                            modifier = Modifier.size(15.dp)
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
                             }
+                        }
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                            SelectionContainer {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(max = 100.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(activeTheme.primaryContainer.copy(alpha = 0.4f))
-                                        .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(8.dp))
-                                        .padding(10.dp)
-                                        .verticalScroll(rememberScrollState())
-                                ) {
-                                    Text(
-                                        text = state.replaceOutput.ifEmpty { "Transformed text output will appear here..." },
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 12.sp,
-                                        color = Slate900
-                                    )
-                                }
+                        SelectionContainer {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Slate50)
+                                    .border(1.dp, Slate200, RoundedCornerShape(8.dp))
+                                    .padding(10.dp)
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                Text(
+                                    text = state.replaceOutput.ifEmpty { "Transformed text output will appear here..." },
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 13.sp,
+                                    lineHeight = 20.sp,
+                                    color = Slate900
+                                )
                             }
                         }
                     }

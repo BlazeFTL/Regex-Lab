@@ -352,7 +352,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             val replaceRes = try {
                 if (_regexState.value.isReplaceMode) {
-                    if (isGlobal) {
+                    if (replaceStr.isEmpty()) {
+                        testStr
+                    } else if (isGlobal) {
                         regex.replace(testStr, replaceStr)
                     } else {
                         regex.replaceFirst(testStr, replaceStr)
