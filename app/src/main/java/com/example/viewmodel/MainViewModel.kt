@@ -40,6 +40,7 @@ data class RegexEvaluationState(
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: RegexRepository
+    private val prefs = application.getSharedPreferences("regex_lab_prefs", Context.MODE_PRIVATE)
 
     private val _regexState = MutableStateFlow(RegexEvaluationState())
     val regexState: StateFlow<RegexEvaluationState> = _regexState.asStateFlow()
@@ -49,16 +50,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
 
     // Active tutorial lesson
-    private val _activeTutorialIndex = MutableStateFlow(0)
+    private val _activeTutorialIndex = MutableStateFlow(prefs.getInt("saved_tutorial_index", 0))
     val activeTutorialIndex: StateFlow<Int> = _activeTutorialIndex.asStateFlow()
 
-    private val _tutorialInputPattern = MutableStateFlow("")
+    private val _tutorialInputPattern = MutableStateFlow(
+        TutorialData.lessons.getOrNull(prefs.getInt("saved_tutorial_index", 0))?.initialPattern ?: ""
+    )
     val tutorialInputPattern: StateFlow<String> = _tutorialInputPattern.asStateFlow()
 
     private val _showHint = MutableStateFlow(false)
     val showHint: StateFlow<Boolean> = _showHint.asStateFlow()
 
-    private val prefs = application.getSharedPreferences("regex_lab_prefs", Context.MODE_PRIVATE)
+    // Cheat Sheet scroll position memory
+    var cheatSheetFirstVisibleIndex: Int = prefs.getInt("cheat_sheet_index", 0)
+        private set
+    var cheatSheetFirstVisibleOffset: Int = prefs.getInt("cheat_sheet_offset", 0)
+        private set
+
+    fun updateCheatSheetScroll(index: Int, offset: Int) {
+        cheatSheetFirstVisibleIndex = index
+        cheatSheetFirstVisibleOffset = offset
+        prefs.edit().putInt("cheat_sheet_index", index).putInt("cheat_sheet_offset", offset).apply()
+    }
 
     private val _appSettings = MutableStateFlow(loadSettingsFromPrefs())
     val appSettings: StateFlow<AppSettings> = _appSettings.asStateFlow()
@@ -388,6 +401,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun selectTutorialLesson(index: Int) {
         if (index in TutorialData.lessons.indices) {
             _activeTutorialIndex.value = index
+            prefs.edit().putInt("saved_tutorial_index", index).apply()
             val lesson = TutorialData.lessons[index]
             _tutorialInputPattern.value = lesson.initialPattern
             _showHint.value = false
