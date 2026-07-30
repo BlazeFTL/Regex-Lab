@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
@@ -35,6 +36,8 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import com.example.model.AppThemeData
@@ -140,8 +143,8 @@ class RegexHighlightTransformation(
 
                         addStyle(
                             style = SpanStyle(
-                                background = if (isSelected) colorPair.border else colorPair.bg,
-                                color = colorPair.text,
+                                background = if (isSelected) Color(0xFFF59E0B) else colorPair.bg,
+                                color = if (isSelected) Color.White else colorPair.text,
                                 fontWeight = FontWeight.Bold
                             ),
                             start = transStart,
@@ -217,6 +220,7 @@ fun RegexTesterScreen(
     var showHistorySheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     var showFlagsMenu by remember { mutableStateOf(false) }
+    var selectedMatchIndex by remember { mutableStateOf(0) }
 
     val testTextScrollState = rememberScrollState()
     val testTextFocusRequester = remember { FocusRequester() }
@@ -225,10 +229,26 @@ fun RegexTesterScreen(
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
 
-    // Auto-scroll Test Text to keep caret/bottom in view as user types or adds newlines
-    LaunchedEffect(state.testString) {
-        if (state.testString.isNotEmpty()) {
-            testTextScrollState.animateScrollTo(testTextScrollState.maxValue)
+    // Keep selectedMatchIndex valid when matches update
+    LaunchedEffect(state.matches) {
+        if (state.matches.isNotEmpty()) {
+            if (selectedMatchIndex !in state.matches.indices) {
+                selectedMatchIndex = 0
+            }
+        } else {
+            selectedMatchIndex = 0
+        }
+    }
+
+    // Auto-scroll Test Text directly to the currently selected match position
+    LaunchedEffect(selectedMatchIndex, state.matches) {
+        if (state.matches.isNotEmpty() && selectedMatchIndex in state.matches.indices) {
+            val currentMatch = state.matches[selectedMatchIndex]
+            val charIndex = currentMatch.range.first
+            val lineCount = state.testString.take(charIndex.coerceIn(0, state.testString.length)).count { it == '\n' }
+            val approxLineHeightPx = 52
+            val targetScrollY = (lineCount * approxLineHeightPx).coerceIn(0, testTextScrollState.maxValue)
+            testTextScrollState.animateScrollTo(targetScrollY)
         }
     }
 
@@ -244,7 +264,7 @@ fun RegexTesterScreen(
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 1. TOP HEADER WITH TITLE AND HISTORY/SAVE/SETTINGS ACTIONS
+            // 1. TOP HEADER WITH TITLE AND SLEEK COMPACT ACTION BUTTONS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -266,63 +286,60 @@ fun RegexTesterScreen(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // HISTORY BUTTON (Sleek Rounded Square)
+                    // HISTORY BUTTON (Sleek Compact Circle)
                     IconButton(
                         onClick = {
                             viewModel.commitCurrentSessionToHistory()
                             showHistorySheet = true
                         },
                         modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(activeTheme.primaryContainer)
-                            .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(10.dp))
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(activeTheme.primaryContainer.copy(alpha = 0.4f))
                     ) {
                         Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = "Evaluation History",
                             tint = activeTheme.primaryColor,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
 
                     if (!settings.hideSaveButton) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
 
-                        // SAVE BUTTON (Sleek Rounded Square)
+                        // SAVE BUTTON (Sleek Compact Circle)
                         IconButton(
                             onClick = { showSaveDialog = true },
                             modifier = Modifier
-                                .size(38.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(activeTheme.primaryContainer)
-                                .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(10.dp))
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(activeTheme.primaryContainer.copy(alpha = 0.4f))
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Save,
                                 contentDescription = "Save Pattern",
                                 tint = activeTheme.primaryColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
-                    // SETTINGS BUTTON (Sleek Rounded Square)
+                    // SETTINGS BUTTON (Sleek Compact Circle)
                     IconButton(
                         onClick = { showSettingsSheet = true },
                         modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .size(32.dp)
+                            .clip(CircleShape)
                             .background(Slate100)
-                            .border(1.dp, Slate200, RoundedCornerShape(10.dp))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
                             tint = Slate800,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -342,7 +359,7 @@ fun RegexTesterScreen(
                         .fillMaxSize()
                         .padding(12.dp)
                 ) {
-                    // Header row inside Text Card
+                    // Header row inside Text Card with Match Traverse Up/Down Controls
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -364,12 +381,57 @@ fun RegexTesterScreen(
                                     .background(if (state.matches.isNotEmpty()) activeTheme.primaryColor else Slate300)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "${state.matches.size} match${if (state.matches.size != 1) "es" else ""}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = if (state.matches.isNotEmpty()) activeTheme.primaryColor else Slate600
-                            )
+
+                            if (state.matches.isNotEmpty()) {
+                                // PREVIOUS MATCH BUTTON (UP)
+                                IconButton(
+                                    onClick = {
+                                        if (state.matches.isNotEmpty()) {
+                                            selectedMatchIndex = if (selectedMatchIndex > 0) selectedMatchIndex - 1 else state.matches.size - 1
+                                        }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowUp,
+                                        contentDescription = "Previous Match",
+                                        tint = activeTheme.primaryColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+
+                                Text(
+                                    text = "${selectedMatchIndex + 1}/${state.matches.size}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = activeTheme.primaryColor
+                                )
+
+                                // NEXT MATCH BUTTON (DOWN)
+                                IconButton(
+                                    onClick = {
+                                        if (state.matches.isNotEmpty()) {
+                                            selectedMatchIndex = (selectedMatchIndex + 1) % state.matches.size
+                                        }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        contentDescription = "Next Match",
+                                        tint = activeTheme.primaryColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = "0 matches",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Slate600
+                                )
+                            }
+
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "(${state.testString.length} chars)",
@@ -397,8 +459,8 @@ fun RegexTesterScreen(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    val transformation = remember(state.matches) {
-                        RegexHighlightTransformation(state.matches, null)
+                    val transformation = remember(state.matches, selectedMatchIndex) {
+                        RegexHighlightTransformation(state.matches, selectedMatchIndex)
                     }
 
                     // Main Editable Text Area taking full available space in Card
@@ -738,14 +800,47 @@ fun RegexTesterScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Transformed Result Output:",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Slate600,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                if (state.replaceOutput.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = {
+                                            clipboardManager.setText(AnnotatedString(state.replaceOutput))
+                                            Toast.makeText(context, "Transformed text copied", Toast.LENGTH_SHORT).show()
+                                        },
+                                        modifier = Modifier.size(22.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentCopy,
+                                            contentDescription = "Copy Transformed Result",
+                                            tint = activeTheme.primaryColor,
+                                            modifier = Modifier.size(15.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
                             SelectionContainer {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .heightIn(max = 100.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(activeTheme.primaryContainer.copy(alpha = 0.5f))
+                                        .background(activeTheme.primaryContainer.copy(alpha = 0.4f))
                                         .border(1.dp, activeTheme.primaryContainer, RoundedCornerShape(8.dp))
                                         .padding(10.dp)
+                                        .verticalScroll(rememberScrollState())
                                 ) {
                                     Text(
                                         text = state.replaceOutput.ifEmpty { "Transformed text output will appear here..." },
