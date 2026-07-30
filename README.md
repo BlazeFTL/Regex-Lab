@@ -38,12 +38,6 @@ A mobile-first regex tester and learning tool. Build, test, and debug regular ex
 <img width="702" height="1560" alt="Screenshot_20260730-165536_Spark Launcher" src="https://github.com/user-attachments/assets/d83bc9d5-6e4c-4a8c-97bb-065ebaf3ffa8" />
 <img width="702" height="1560" alt="Screenshot_20260730-165539_Spark Launcher" src="https://github.com/user-attachments/assets/bf9fa65c-e643-4e1f-86f6-1c4ec289307e" />
 
-
-
-| Tester | Settings | Tutorials |
-|---|---|---|
-| Live pattern matching & replace | Themes & UI toggles | Regex Academy challenges |
-
 ## License
 
 MIT
